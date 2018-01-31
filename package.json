@@ -1,0 +1,19 @@
+{
+  "name": "uvpm-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashblue/uvpm-cli.git"
+  },
+  "author": "https://github.com/ashblue",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ashblue/uvpm-cli/issues"
+  },
+  "homepage": "https://github.com/ashblue/uvpm-cli#readme"
+}
