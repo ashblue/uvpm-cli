@@ -1,0 +1,23 @@
+{
+  "extends": [
+    "tslint-eslint-rules",
+    "tslint:recommended"
+  ],
+  "rules": {
+    "no-console": false,
+    "no-unused-expression": false,
+    "space-before-function-paren": true,
+    "no-var-requires": false,
+    "quotemark": [
+      true,
+      "single"
+    ],
+    "object-literal-sort-keys": false,
+    "no-shadowed-variable": true,
+    "no-string-literal": true,
+    "ordered-imports": false,
+    "object-curly-spacing": true,
+    "no-empty-interface": false,
+    "jsdoc-format": true
+  }
+}
