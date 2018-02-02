@@ -11,7 +11,7 @@
     "test:single": "TEST=true mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --opts tests/mocha.opts --watch",
     "test:coverage": "TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
-    "test:ci": "TEST=true nyc report --reporter=text-lcov > coverage.lcov mocha --opts tests/mocha.opts \"src/**/*.spec.ts\" && codecov",
+    "test:ci": "TEST=true nyc report --reporter=text-lcov > coverage.lcov mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "lint": "tslint -c tslint.json \"src/**/*.ts\""
   },
   "nyc": {
