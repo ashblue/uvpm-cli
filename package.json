@@ -20,7 +20,8 @@
       ".tsx"
     ],
     "exclude": [
-      "**/*.d.ts"
+      "**/*.d.ts",
+      "**/*.spec.ts"
     ]
   },
   "repository": {
