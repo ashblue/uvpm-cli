@@ -11,10 +11,8 @@ export abstract class CmdBase {
 
   protected abstract action (): void;
 
-  /**
-   * Call upon completion to exit the running command
-   */
   protected complete () {
+    /* istanbul ignore if: crashes test runner */
     if (!config.isEnvTest()) {
       process.exit();
     }
