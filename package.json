@@ -7,14 +7,19 @@
     "start": "npm run watch",
     "watch": "npm run lint && tsc -w",
     "build": "npm run lint && tsc",
+    "lint": "tslint -c tslint.json \"src/**/*.ts\"",
+    "nyc:shim": "node nyc-shim.js",
+
     "test": "TEST=true mocha --opts tests/mocha.opts --watch \"src/**/*.spec.ts\"",
     "test:single": "TEST=true mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --opts tests/mocha.opts --watch",
-    "test:coverage": "TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
-    "test:ci": "TEST=true nyc mocha --opts tests/mocha.opts \"src/**/*.spec.ts\" && nyc report --reporter=text-lcov > coverage.lcov",
-    "lint": "tslint -c tslint.json \"src/**/*.ts\"",
+
+    "coverage": "npm run nyc:shim && TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
+    "coverage:simple": "npm run nyc:shim && TEST=true nyc mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
+    "test:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
+
     "precommit": "npm run lint",
-    "prepush": "npm run lint && npm run test:ci"
+    "prepush": "npm run lint && npm run coverage"
   },
   "nyc": {
     "check-coverage": true,
