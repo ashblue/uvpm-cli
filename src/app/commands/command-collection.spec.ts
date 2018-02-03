@@ -10,9 +10,4 @@ describe('CommandCollection', () => {
 
     expect(col).to.be.ok;
   });
-
-  it('should trigger the listen method to process arguments', () => {
-    const col = new CommandCollection(new commander.Command());
-    col.listen();
-  });
 });

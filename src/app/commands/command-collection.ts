@@ -22,6 +22,7 @@ export class CommandCollection {
   /**
    * Trigger to activate reading arguments
    */
+  /* istanbul ignore next: crashes test runner */
   public listen () {
     this.program.parse(process.argv);
   }
