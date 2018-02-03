@@ -12,9 +12,17 @@
     "test:file": "TEST=true mocha --opts tests/mocha.opts --watch",
     "test:coverage": "TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "test:ci": "TEST=true nyc mocha --opts tests/mocha.opts \"src/**/*.spec.ts\" && nyc report --reporter=text-lcov > coverage.lcov",
-    "lint": "tslint -c tslint.json \"src/**/*.ts\""
+    "lint": "tslint -c tslint.json \"src/**/*.ts\"",
+    "precommit": "npm run lint",
+    "prepush": "npm run lint && npm run test:ci"
   },
   "nyc": {
+    "check-coverage": true,
+    "per-file": true,
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
     "extension": [
       ".ts",
       ".tsx"
@@ -45,6 +53,7 @@
     "@types/chai": "^4.1.2",
     "@types/mocha": "^2.2.48",
     "chai": "^4.1.2",
+    "husky": "^0.14.3",
     "mocha": "^5.0.0",
     "nyc": "^11.4.1",
     "sinon": "^4.2.2",
