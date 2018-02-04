@@ -10,12 +10,14 @@ export class CmdHelloWord extends CmdBase {
     return 'Prints "Hello World!"';
   }
 
-  protected action (): void {
-    this.helloWorld();
+  protected onAction (): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.helloWorld();
+      resolve();
+    });
   }
 
   private helloWorld () {
     console.log(chalk.blue('Hello World!'));
-    this.complete();
   }
 }

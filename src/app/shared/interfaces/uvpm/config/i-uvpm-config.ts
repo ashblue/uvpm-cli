@@ -7,6 +7,7 @@ export interface IUvpmConfig {
   author: string;
   homepage: string;
   description: string;
+  license: string;
   dependencies: IUvpmPackageCollection;
   publishing: IUvpmConfigPublishing;
 }
