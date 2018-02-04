@@ -6,10 +6,6 @@ import { config } from './shared/config';
 export class App {
   private commandCollection = new CommandCollection(new Command(), inquirer);
 
-  constructor () {
-    this.init();
-  }
-
   public init () {
     /* istanbul ignore if */
     if (!config.isEnvTest()) {

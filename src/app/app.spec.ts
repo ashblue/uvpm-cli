@@ -8,4 +8,11 @@ describe('CtrlHelloWorld', () => {
 
     expect(inst).to.be.ok;
   });
+
+  describe('init', () => {
+    it('should run', () => {
+      const inst = new App();
+      inst.init();
+    });
+  });
 });

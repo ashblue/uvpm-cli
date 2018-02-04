@@ -82,7 +82,7 @@ export class CmdInit extends CmdBase {
       }, {}) as IUvpmConfig;
 
     const configData = new ModelUvpmConfig(overridesSanitize);
-    const configString = JSON.stringify(configData);
+    const configString = JSON.stringify(configData, null, '\t');
 
     return new Promise((resolve, reject) => {
       const path = `./${CmdInit.fileName}`;
