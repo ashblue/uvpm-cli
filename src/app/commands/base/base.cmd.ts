@@ -12,13 +12,17 @@ export abstract class CmdBase {
 
   /* istanbul ignore next: catch does not necessarily need to fire */
   public action (): Promise<void> {
-    return this.onAction()
-      .then(() => {
-        this.complete();
-      })
-      .catch(() => {
-        this.complete();
-      });
+    return new Promise<void>((resolve, reject) => {
+      this.onAction()
+        .then(() => {
+          resolve();
+          this.complete();
+        })
+        .catch((err) => {
+          reject(err);
+          this.complete();
+        });
+    });
   }
 
   protected abstract onAction (): Promise<void>;

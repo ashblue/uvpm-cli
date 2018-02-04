@@ -85,7 +85,14 @@ export class CmdInit extends CmdBase {
     const configString = JSON.stringify(configData);
 
     return new Promise((resolve, reject) => {
-      fs.writeFile(`./${CmdInit.fileName}`, configString, (err) => {
+      const path = `./${CmdInit.fileName}`;
+
+      if (fs.existsSync(path)) {
+        reject(`Cannot overwrite ${CmdInit.fileName}`);
+        return;
+      }
+
+      fs.writeFile(path, configString, (err) => {
         /* istanbul ignore if */
         if (err) {
           reject(err);

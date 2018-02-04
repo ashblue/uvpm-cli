@@ -78,24 +78,24 @@ describe('CmdInit', () => {
       expect(configData.license).to.eq(configDefaults.license);
     });
 
-    xit('should provide help text when the command first runs', () => {
-      console.log('placeholder');
-    });
+    it('should fail if a uvpm.json file already exists', async () => {
+      fs.writeFileSync(`./${CmdInit.fileName}`, '{}');
 
-    xit('should display the generated file to the user and location after prompts', () => {
-      console.log('placeholder');
-    });
+      const cmdInit = new CmdInit(cmd, new StubInquirer({}) as any);
+      expect(cmdInit).to.be.ok;
 
-    xit('should create the file if the user verifies with a yes command', () => {
-      console.log('placeholder');
-    });
+      let err;
+      try {
+        await cmdInit.action();
+      } catch (e) {
+        err = e;
+      }
 
-    xit('should abort and not create a file if the user does not confirm without a yes', () => {
-      console.log('placeholder');
-    });
+      expect(err).to.be.ok;
 
-    xit('should fail if a uvpm.json file already exists', () => {
-      console.log('placeholder');
+      const contents = fs.readFileSync(`./${CmdInit.fileName}`).toString();
+      expect(contents).to.be.ok;
+      expect(contents).to.eq('{}');
     });
   });
 });
