@@ -70,8 +70,18 @@ export class CmdInit extends CmdBase {
     });
   }
 
-  protected createConfig (overrides: IUvpmConfig): Promise<void> {
-    const configData = new ModelUvpmConfig(overrides);
+  protected createConfig (overrides: any): Promise<void> {
+    const overridesSanitize = Object.keys(overrides)
+      .reduce<any>((col, key) => {
+        const val = overrides[key];
+        if (val && val !== '') {
+          col[key] = val;
+        }
+
+        return col;
+      }, {}) as IUvpmConfig;
+
+    const configData = new ModelUvpmConfig(overridesSanitize);
     const configString = JSON.stringify(configData);
 
     return new Promise((resolve, reject) => {

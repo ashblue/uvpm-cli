@@ -1,7 +1,10 @@
 import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
 
 export const configDefaults = Object.freeze({
+  name: '',
   version: '1.0.0',
+  description: '',
+  author: '',
   license: 'ISC',
   dependencies: {
     outputFolder: 'Assets/Plugins/UPM',
@@ -12,11 +15,11 @@ export const configDefaults = Object.freeze({
 });
 
 export class ModelUvpmConfig implements IUvpmConfig {
-  public name = '';
+  public name = configDefaults.name;
   public version = configDefaults.version;
-  public author = '';
+  public author = configDefaults.author;
   public homepage = '';
-  public description = '';
+  public description = configDefaults.description;
   public license = configDefaults.license;
 
   public dependencies = {

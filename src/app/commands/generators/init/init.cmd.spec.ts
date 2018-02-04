@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 import * as chai from 'chai';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
+import { configDefaults } from '../../../shared/models/uvpm/uvpm-config.model';
 const expect = chai.expect;
 
 describe('CmdInit', () => {
@@ -52,8 +53,29 @@ describe('CmdInit', () => {
       expect(configData.license).to.contain(answers.license);
     });
 
-    xit('should generate default values if blank answers are provided', () => {
-      console.log('placeholder');
+    it('should generate default values if blank answers are provided', async () => {
+      const answers = {
+        name: null,
+        version: '',
+        description: null,
+        author: undefined,
+        license: undefined,
+      };
+
+      const cmdInit = new CmdInit(cmd, new StubInquirer(answers) as any);
+      expect(cmdInit).to.be.ok;
+      await cmdInit.action();
+
+      const contents = fs.readFileSync(`./${CmdInit.fileName}`);
+      expect(contents).to.be.ok;
+
+      const configData = JSON.parse(contents.toString()) as IUvpmConfig;
+      expect(configData).to.be.ok;
+      expect(configData.name).to.eq(configDefaults.name);
+      expect(configData.version).to.eq(configDefaults.version);
+      expect(configData.description).to.eq(configDefaults.description);
+      expect(configData.author).to.eq(configDefaults.author);
+      expect(configData.license).to.eq(configDefaults.license);
     });
 
     xit('should provide help text when the command first runs', () => {
