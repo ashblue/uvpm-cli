@@ -41,7 +41,8 @@ export class CmdInit extends CmdBase {
   }
 
   public get description (): string {
-    return `Helps generate a ${CmdInit.fileName} file`;
+    return `Generates a "${CmdInit.fileName}" file from where the command is run.
+      Automatically fails if a file already exists.`;
   }
 
   protected onAction (): Promise<void> {
