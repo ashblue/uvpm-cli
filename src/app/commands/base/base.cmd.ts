@@ -3,14 +3,13 @@ import { config } from '../../shared/config';
 import { Inquirer } from 'inquirer';
 
 export abstract class CmdBase {
-  protected abstract get name (): string;
-  protected abstract get description (): string;
+  public abstract get name (): string;
+  public abstract get description (): string;
 
   constructor (protected program: Command, protected inquirer: Inquirer) {
     this.addCliCommnd();
   }
 
-  /* istanbul ignore next: catch does not necessarily need to fire */
   public action (): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.onAction()

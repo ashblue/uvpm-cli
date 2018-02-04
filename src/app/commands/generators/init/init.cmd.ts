@@ -36,11 +36,11 @@ export class CmdInit extends CmdBase {
     },
   ];
 
-  protected get name (): string {
+  public get name (): string {
     return 'init';
   }
 
-  protected get description (): string {
+  public get description (): string {
     return `Helps generate a ${CmdInit.fileName} file`;
   }
 

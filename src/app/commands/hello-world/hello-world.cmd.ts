@@ -2,11 +2,11 @@ import chalk from 'chalk';
 import { CmdBase } from '../base/base.cmd';
 
 export class CmdHelloWord extends CmdBase {
-  protected get name (): string {
+  public get name (): string {
     return 'hello-world';
   }
 
-  protected get description (): string {
+  public get description (): string {
     return 'Prints "Hello World!"';
   }
 
