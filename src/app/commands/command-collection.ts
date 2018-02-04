@@ -4,24 +4,28 @@ import { CmdBase } from './base/base.cmd';
 
 import pjson = require('pjson');
 import * as process from 'process';
+import * as inquirer from 'inquirer';
+import { CmdInit } from './generators/init/init.cmd';
 
 export class CommandCollection {
-  private instances: CmdBase[] = [];
-  private commands: Array<{ new (program: Command): CmdBase }> = [
+  public commandInstances: CmdBase[] = [];
+  private commands: Array<{ new (program: Command, inq: inquirer.Inquirer): CmdBase }> = [
     CmdHelloWord,
+    CmdInit,
   ];
 
-  constructor (private program: Command) {
+  constructor (private program: Command, private inq: inquirer.Inquirer) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
-      this.instances.push(new c(program));
+      this.commandInstances.push(new c(program, this.inq));
     });
   }
 
   /**
    * Trigger to activate reading arguments
    */
+  /* istanbul ignore next: crashes test runner */
   public listen () {
     this.program.parse(process.argv);
   }

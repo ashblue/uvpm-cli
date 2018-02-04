@@ -5,5 +5,7 @@ install:
 node_js:
 - "node"
 script:
-- npm run test:ci
+- npm run build
+- npm run lint
+- npm run coverage:ci
 - codecov
