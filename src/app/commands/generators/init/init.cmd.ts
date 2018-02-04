@@ -4,7 +4,6 @@ import { Questions } from 'inquirer';
 import { configDefaults, ModelUvpmConfig } from '../../../shared/models/uvpm/uvpm-config.model';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
 import * as fs from 'fs';
-import { config } from '../../../shared/config';
 
 export class CmdInit extends CmdBase {
   public static fileName = 'uvpm.json';

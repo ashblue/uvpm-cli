@@ -4,10 +4,11 @@ import { CmdBase } from './base/base.cmd';
 
 import pjson = require('pjson');
 import * as process from 'process';
+import * as inquirer from 'inquirer';
 
 export class CommandCollection {
   private instances: CmdBase[] = [];
-  private commands: Array<{ new (program: Command): CmdBase }> = [
+  private commands: Array<{ new (program: Command, inq: inquirer.Inquirer): CmdBase }> = [
     CmdHelloWord,
   ];
 
@@ -15,7 +16,7 @@ export class CommandCollection {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
-      this.instances.push(new c(program));
+      this.instances.push(new c(program, inquirer));
     });
   }
 
