@@ -21,4 +21,14 @@ describe('CommandCollection', () => {
 
     expect(match).to.be.ok;
   });
+
+  it('should inject a server command', () => {
+    const col = new CommandCollection(new commander.Command(), inquirer);
+
+    const match = col.commandInstances.find((i) => {
+      return i.name.toLowerCase().includes('server');
+    });
+
+    expect(match).to.be.ok;
+  });
 });
