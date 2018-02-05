@@ -11,6 +11,7 @@ export class ModelProfile implements IProfile {
   public email: string = '';
 
   private db: Database;
+  private rev: any;
 
   constructor () {
     this.db = new PouchDB(ModelProfile.dbName);
@@ -21,6 +22,7 @@ export class ModelProfile implements IProfile {
       this.db.get<IProfile>(ModelProfile.profileId)
         .then((doc) => {
           Object.assign(this, doc);
+          this.rev = doc._rev;
           resolve();
         })
         .catch((err: any) => {
@@ -37,6 +39,7 @@ export class ModelProfile implements IProfile {
   public save (): Promise<PouchDB.Core.Response> {
     return this.db.put<IProfile>({
       _id: ModelProfile.profileId,
+      _rev: this.rev,
       token: this.token,
       server: this.server,
       email: this.email,

@@ -3,4 +3,5 @@ export interface IProfile {
   email: string;
   server: string;
   _id?: string;
+  _rev?: any;
 }
