@@ -1,11 +1,12 @@
 import { Command } from 'commander';
 import { CmdInit } from './init.cmd';
 import { StubInquirer } from '../../../shared/stubs/stub-inquirer';
-import * as fs from 'fs';
-
-import * as chai from 'chai';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
 import { configDefaults } from '../../../shared/models/uvpm/uvpm-config.model';
+
+import * as fs from 'fs';
+import * as chai from 'chai';
+
 const expect = chai.expect;
 
 describe('CmdInit', () => {
