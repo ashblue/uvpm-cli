@@ -26,7 +26,7 @@ export class CmdServer extends CmdBase {
   }
 
   private setUrl (url: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       const profile = new ModelProfile();
 
       profile.load()
@@ -36,10 +36,6 @@ export class CmdServer extends CmdBase {
             .then(() => {
               this.log(chalk.green(`Server set to "${url}"`));
               resolve();
-            })
-            .catch(() => {
-              this.log(chalk.red(`Failed to set server to "${url}`));
-              reject();
             });
         });
 

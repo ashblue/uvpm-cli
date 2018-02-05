@@ -20,19 +20,12 @@ export abstract class CmdBase {
   public logErrHistory: string[] = [];
 
   public get lastLog (): string {
-    if (this.logHistory.length > 0) {
-      return this.logHistory[this.logHistory.length - 1];
-    }
-
-    return '';
+    return this.logHistory[this.logHistory.length - 1];
   }
 
+  /* istanbul ignore next */
   public get lastLogErr (): string {
-    if (this.logErrHistory.length > 0) {
-      return this.logErrHistory[this.logErrHistory.length - 1];
-    }
-
-    return '';
+    return this.logErrHistory[this.logErrHistory.length - 1];
   }
 
   protected get options (): ICmdOption[] {
@@ -94,6 +87,7 @@ export abstract class CmdBase {
       .command(this.name)
       .description(this.description);
 
+    /* istanbul ignore next: Tmp ignored until some actual options are here to test */
     if (this.options) {
       this.options.forEach((o) => {
         if (o.fn) {

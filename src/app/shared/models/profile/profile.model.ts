@@ -26,11 +26,13 @@ export class ModelProfile implements IProfile {
           resolve();
         })
         .catch((err: any) => {
+          /* istanbul ignore else: Emergency exit catch */
           if (err.status === 404) {
             resolve();
             return;
           }
 
+          /* istanbul ignore next: Emergency exit catch */
           reject(err);
         });
     });
@@ -60,11 +62,13 @@ export class ModelProfile implements IProfile {
           resolve();
         })
         .catch((err: any) => {
+          /* istanbul ignore else: Emergency exit catch */
           if (err.status === 404) {
             resolve();
             return;
           }
 
+          /* istanbul ignore next: Emergency exit catch */
           reject(err);
         });
     });
