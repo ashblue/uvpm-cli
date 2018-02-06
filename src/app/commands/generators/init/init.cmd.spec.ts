@@ -85,14 +85,9 @@ describe('CmdInit', () => {
       const cmdInit = new CmdInit(cmd, new StubInquirer({}) as any);
       expect(cmdInit).to.be.ok;
 
-      let err;
-      try {
-        await cmdInit.action();
-      } catch (e) {
-        err = e;
-      }
+      await cmdInit.action();
 
-      expect(err).to.be.ok;
+      expect(cmdInit.lastLogErr).to.contain(`Cannot overwrite ${CmdInit.fileName}`);
 
       const contents = fs.readFileSync(`./${CmdInit.fileName}`).toString();
       expect(contents).to.be.ok;

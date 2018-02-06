@@ -37,7 +37,7 @@ export abstract class CmdBase {
   }
 
   public action (argA?: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       this.onAction(argA)
         .then(() => {
           resolve();
@@ -47,7 +47,7 @@ export abstract class CmdBase {
           this.logErr(`UVPM command ${this.name} failed. Error log as follows:`);
           this.logErr(err);
 
-          reject(err);
+          resolve();
           this.complete();
         });
     });
