@@ -13,6 +13,18 @@ export class ModelProfile implements IProfile {
   private db: Database;
   private rev: any;
 
+  get isServer (): boolean {
+    return this.server !== ''
+      && this.server !== null
+      && this.server !== undefined;
+  }
+
+  get isToken (): boolean {
+    return this.token !== ''
+      && this.token !== null
+      && this.token !== undefined;
+  }
+
   constructor () {
     this.db = new PouchDB(ModelProfile.dbName);
   }
