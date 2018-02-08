@@ -8,7 +8,7 @@ export class App {
 
   public init () {
     /* istanbul ignore if */
-    if (!config.isEnvTest()) {
+    if (!config.isEnvTest) {
       this.commandCollection.listen();
     }
   }

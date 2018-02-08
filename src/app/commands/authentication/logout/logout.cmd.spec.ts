@@ -18,8 +18,6 @@ describe('CmdWhoami', () => {
 
     beforeEach(async () => {
       profile = new ModelProfile();
-      await profile.clear();
-
       cmd = new CmdLogout(new Command(), inquirer);
     });
 
