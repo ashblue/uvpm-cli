@@ -6,6 +6,7 @@ import { ModelProfile } from '../../../shared/models/profile/profile.model';
 import { ILoginRequest } from './i-login-request';
 import * as nock from 'nock';
 import { ILoginResponse } from './i-login-response';
+import { IUvpmError } from '../../../shared/interfaces/uvpm/i-uvpm-error';
 
 const expect = chai.expect;
 
@@ -28,7 +29,7 @@ describe('CmdLogin', () => {
       expect(cmd.lastLogErr).to.contain('Please run "uvpm server [URL]" to set an end point');
     });
 
-    it('should login a registered user', async () => {
+    it('should return login credentials for a registered user', async () => {
       const login: ILoginRequest = {
         email: 'asdf@asdf.com',
         password: 'Asdf1234',
@@ -56,18 +57,40 @@ describe('CmdLogin', () => {
         .reply(200, loginResponse);
 
       await cmd.action();
-      await profile.load();
+      expect(cmd.logHistory[0]).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
+      expect(cmd.logHistory[1]).to.contain(`Successfully logged in as ${profile.email}`);
 
+      await profile.load();
       expect(profile.email).to.eq(login.email);
       expect(profile.isToken).to.be.ok;
     });
 
-    it('should store successful login details in the database', () => {
-      console.log('placeholder');
-    });
+    it('should print an error if the user fails to login (401)', async () => {
+      const login: ILoginRequest = {
+        email: 'asdf@asdf.com',
+        password: 'Asdf1234',
+      };
 
-    it('should print an error if the user fails to login (401)', () => {
-      console.log('placeholder');
+      const cmd = new CmdLogin(new Command(), new StubInquirer(login) as any);
+
+      const profile = new ModelProfile();
+      profile.server = 'http://testapp.com';
+      await profile.save();
+
+      const loginResponse: IUvpmError = {
+        message: 'Not authenticated',
+      };
+
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .reply(401, loginResponse);
+
+      await cmd.action();
+      expect(JSON.stringify(cmd.lastLogErr)).to.contain(loginResponse.message);
+
+      await profile.load();
+      expect(profile.email).to.eq('');
+      expect(profile.isToken).to.be.not.ok;
     });
 
     it('should print an error if the server fails to respond (500)', () => {

@@ -43,7 +43,7 @@ export class CmdLogin extends CmdBase {
       const loginUrl = `${profile.server}/${this.postUrl}`;
       this.log(chalk.bold(`Logging into "${loginUrl}"`));
 
-      this.inquirer.prompt(this.questions)
+      return this.inquirer.prompt(this.questions)
         .then((answers) => {
           const loginRequest = answers as ILoginRequest;
           return axios.post(loginUrl, loginRequest);
@@ -53,12 +53,12 @@ export class CmdLogin extends CmdBase {
           profile.token = data.token;
           profile.email = data.user.email;
           return profile.save();
+        }, (reason) => {
+          reject(reason.response.data);
         })
         .then(() => {
+          this.log(`Successfully logged in as ${profile.email}`);
           resolve();
-        })
-        .catch((err) => {
-          reject(err);
         });
     });
   }
