@@ -1,11 +1,12 @@
 import { Command } from 'commander';
 import { CmdInit } from './init.cmd';
 import { StubInquirer } from '../../../shared/stubs/stub-inquirer';
-import * as fs from 'fs';
-
-import * as chai from 'chai';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
 import { configDefaults } from '../../../shared/models/uvpm/uvpm-config.model';
+
+import * as fs from 'fs';
+import * as chai from 'chai';
+
 const expect = chai.expect;
 
 describe('CmdInit', () => {
@@ -84,14 +85,9 @@ describe('CmdInit', () => {
       const cmdInit = new CmdInit(cmd, new StubInquirer({}) as any);
       expect(cmdInit).to.be.ok;
 
-      let err;
-      try {
-        await cmdInit.action();
-      } catch (e) {
-        err = e;
-      }
+      await cmdInit.action();
 
-      expect(err).to.be.ok;
+      expect(cmdInit.lastLogErr).to.contain(`Cannot overwrite ${CmdInit.fileName}`);
 
       const contents = fs.readFileSync(`./${CmdInit.fileName}`).toString();
       expect(contents).to.be.ok;

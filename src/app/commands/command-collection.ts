@@ -6,12 +6,14 @@ import pjson = require('pjson');
 import * as process from 'process';
 import * as inquirer from 'inquirer';
 import { CmdInit } from './generators/init/init.cmd';
+import { CmdServer } from './authentication/server/server.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
   private commands: Array<{ new (program: Command, inq: inquirer.Inquirer): CmdBase }> = [
     CmdHelloWord,
     CmdInit,
+    CmdServer,
   ];
 
   constructor (private program: Command, private inq: inquirer.Inquirer) {

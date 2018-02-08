@@ -9,16 +9,13 @@
     "build": "npm run lint && tsc",
     "lint": "tslint -c tslint.json \"src/**/*.ts\"",
     "nyc:shim": "node nyc-shim.js",
-
     "test": "TEST=true mocha --opts tests/mocha.opts --watch \"src/**/*.spec.ts\"",
     "test:single": "TEST=true mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --opts tests/mocha.opts --watch",
     "test:all": "npm run lint && npm run build && npm run coverage",
-
     "coverage": "npm run nyc:shim && TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "coverage:simple": "npm run nyc:shim && TEST=true nyc mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
-
     "precommit": "npm run lint && npm run build",
     "prepush": "npm run test:all"
   },
@@ -50,12 +47,17 @@
   "homepage": "https://github.com/ashblue/uvpm-cli#readme",
   "dependencies": {
     "@types/inquirer": "0.0.36",
+    "@types/nock": "^9.1.2",
     "@types/node": "^9.4.0",
+    "@types/pouchdb-node": "^6.1.2",
     "@types/sinon": "^4.1.3",
+    "axios": "^0.17.1",
     "chalk": "^2.3.0",
     "commander": "^2.13.0",
     "inquirer": "^5.0.1",
-    "pjson": "^1.0.9"
+    "nock": "^9.1.6",
+    "pjson": "^1.0.9",
+    "pouchdb-node": "^6.4.3"
   },
   "devDependencies": {
     "@types/chai": "^4.1.2",
