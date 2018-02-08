@@ -6,9 +6,9 @@ export class ModelProfile implements IProfile {
   public static dbName = '.db';
   public static profileId = 'default';
 
-  public token: string = '';
-  public server: string = '';
-  public email: string = '';
+  public token: string|null = null;
+  public server: string|null = null;
+  public email: string|null = null;
 
   private db: Database;
   private rev: any;
@@ -71,9 +71,9 @@ export class ModelProfile implements IProfile {
   }
 
   public clear (): Promise<void> {
-    this.token = '';
-    this.server = '';
-    this.email = '';
+    this.token = null;
+    this.server = null;
+    this.email = null;
 
     return new Promise<void>((resolve, reject) => {
       this.db.get(ModelProfile.profileId)

@@ -57,6 +57,8 @@ describe('CmdLogin', () => {
         .reply(200, loginResponse);
 
       await cmd.action();
+      await profile.load();
+
       expect(cmd.logHistory[0]).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
       expect(cmd.logHistory[1]).to.contain(`Successfully logged in as ${profile.email}`);
 
@@ -89,7 +91,7 @@ describe('CmdLogin', () => {
       expect(JSON.stringify(cmd.lastLogErr)).to.contain(loginResponse.message);
 
       await profile.load();
-      expect(profile.email).to.eq('');
+      expect(profile.email).to.eq(null);
       expect(profile.isToken).to.be.not.ok;
     });
 
@@ -115,7 +117,7 @@ describe('CmdLogin', () => {
       expect(cmd.lastLogErr).to.contain(loginResponse);
 
       await profile.load();
-      expect(profile.email).to.eq('');
+      expect(profile.email).to.eq(null);
       expect(profile.isToken).to.be.not.ok;
     });
 
@@ -135,7 +137,7 @@ describe('CmdLogin', () => {
       expect(cmd.lastLogErr).to.be.ok;
 
       await profile.load();
-      expect(profile.email).to.eq('');
+      expect(profile.email).to.eq(null);
       expect(profile.isToken).to.be.not.ok;
     });
   });

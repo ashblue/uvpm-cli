@@ -94,9 +94,9 @@ describe('ModelProfile', () => {
 
         await profile.clear();
 
-        expect(profile.email).to.eq('');
-        expect(profile.server).to.eq('');
-        expect(profile.token).to.eq('');
+        expect(profile.email).to.eq(null);
+        expect(profile.server).to.eq(null);
+        expect(profile.token).to.eq(null);
       });
 
       it('should wipe all data from storage', async () => {
@@ -108,9 +108,9 @@ describe('ModelProfile', () => {
         await profile.clear();
         await profile.load();
 
-        expect(profile.email).to.eq('');
-        expect(profile.server).to.eq('');
-        expect(profile.token).to.eq('');
+        expect(profile.email).to.eq(null);
+        expect(profile.server).to.eq(null);
+        expect(profile.token).to.eq(null);
       });
     });
   });

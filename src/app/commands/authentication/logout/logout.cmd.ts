@@ -1,36 +1,34 @@
 import { CmdBase } from '../../base/base.cmd';
 import { ModelProfile } from '../../../shared/models/profile/profile.model';
-import chalk from 'chalk';
 
-export class CmdWhoami extends CmdBase {
+export class CmdLogout extends CmdBase {
   get name (): string {
-    return 'whoami';
+    return 'logout';
   }
 
   get description (): string {
-    return 'Prints the currently logged in user';
+    return 'Logs out the currently logged in user';
   }
 
   protected onAction (): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      return this.printUser()
+      return this.logOut()
         .then(resolve)
         .catch(reject);
     });
   }
 
-  private printUser (): Promise<void> {
+  private logOut (): Promise<void> {
     return new Promise<void>((resolve) => {
       const profile = new ModelProfile();
-
       profile.load()
         .then(() => {
-          if (profile.isLoggedIn) {
-            this.log(`Current user is: ${profile.email}`);
-          } else {
-            this.logErr(chalk.red('You must run "uvpm login" to set a user'));
-          }
-
+          profile.email = null;
+          profile.token = null;
+          return profile.save();
+        })
+        .then(() => {
+          this.log('Logged out');
           resolve();
         });
     });
