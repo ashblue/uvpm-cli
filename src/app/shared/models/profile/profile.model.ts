@@ -13,6 +13,10 @@ export class ModelProfile implements IProfile {
   private db: Database;
   private rev: any;
 
+  get isLoggedIn (): boolean {
+    return this.isEmail && this.isToken;
+  }
+
   get isServer (): boolean {
     return this.server !== ''
       && this.server !== null
@@ -23,6 +27,12 @@ export class ModelProfile implements IProfile {
     return this.token !== ''
       && this.token !== null
       && this.token !== undefined;
+  }
+
+  get isEmail (): boolean {
+    return this.email !== ''
+      && this.email !== null
+      && this.email !== undefined;
   }
 
   constructor () {
