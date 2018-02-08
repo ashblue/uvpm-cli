@@ -1,15 +1,16 @@
 import * as chai from 'chai';
 import { ModelProfile } from './profile.model';
 import { IProfile } from '../../interfaces/profiles/i-profile';
+import { config } from '../../config';
 const PouchDB = require('pouchdb-node');
 
 const expect = chai.expect;
 
 describe('ModelProfile', () => {
   it('should initialize', () => {
-    const config = new ModelProfile();
+    const model = new ModelProfile();
 
-    expect(config).to.be.ok;
+    expect(model).to.be.ok;
   });
 
   describe('when initialized', () => {
@@ -28,7 +29,7 @@ describe('ModelProfile', () => {
 
         await profile.save();
 
-        const db = new PouchDB(ModelProfile.dbName);
+        const db = new PouchDB(config.dbId);
         const result: IProfile = await db.get(ModelProfile.profileId);
 
         expect(result._id).to.eq(ModelProfile.profileId);

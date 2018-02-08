@@ -57,7 +57,7 @@ export abstract class CmdBase {
 
   /* istanbul ignore next: floods the test runner with logs */
   protected logErr (text: string) {
-    if (config.isEnvTest()) {
+    if (config.isEnvTest) {
       this.logErrHistory.push(text);
       return;
     }
@@ -67,7 +67,7 @@ export abstract class CmdBase {
 
   /* istanbul ignore next: floods the test runner with logs */
   protected log (text: string) {
-    if (config.isEnvTest()) {
+    if (config.isEnvTest) {
       this.logHistory.push(text);
       return;
     }
@@ -77,7 +77,7 @@ export abstract class CmdBase {
 
   private complete () {
     /* istanbul ignore if: crashes test runner */
-    if (!config.isEnvTest()) {
+    if (!config.isEnvTest) {
       process.exit();
     }
   }
