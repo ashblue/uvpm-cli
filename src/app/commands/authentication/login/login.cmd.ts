@@ -54,6 +54,11 @@ export class CmdLogin extends CmdBase {
           profile.email = data.user.email;
           return profile.save();
         }, (reason) => {
+          if (!reason.response) {
+            reject(reason.toString());
+            return;
+          }
+
           reject(reason.response.data);
         })
         .then(() => {

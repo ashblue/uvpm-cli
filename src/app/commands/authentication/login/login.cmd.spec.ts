@@ -93,12 +93,50 @@ describe('CmdLogin', () => {
       expect(profile.isToken).to.be.not.ok;
     });
 
-    it('should print an error if the server fails to respond (500)', () => {
-      console.log('placeholder');
+    it('should print an error if the server fails to respond (500)', async () => {
+      const login: ILoginRequest = {
+        email: 'asdf@asdf.com',
+        password: 'Asdf1234',
+      };
+
+      const cmd = new CmdLogin(new Command(), new StubInquirer(login) as any);
+
+      const profile = new ModelProfile();
+      profile.server = 'http://testapp.com';
+      await profile.save();
+
+      const loginResponse = 'server failed to process response';
+
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .replyWithError(loginResponse);
+
+      await cmd.action();
+      expect(cmd.lastLogErr).to.contain(loginResponse);
+
+      await profile.load();
+      expect(profile.email).to.eq('');
+      expect(profile.isToken).to.be.not.ok;
     });
 
-    it('should print an error if the server does not exist', () => {
-      console.log('placeholder');
+    it('should print an error if the server does not exist', async () => {
+      const login: ILoginRequest = {
+        email: 'asdf@asdf.com',
+        password: 'Asdf1234',
+      };
+
+      const cmd = new CmdLogin(new Command(), new StubInquirer(login) as any);
+
+      const profile = new ModelProfile();
+      profile.server = 'http://testapp.com';
+      await profile.save();
+
+      await cmd.action();
+      expect(cmd.lastLogErr).to.be.ok;
+
+      await profile.load();
+      expect(profile.email).to.eq('');
+      expect(profile.isToken).to.be.not.ok;
     });
   });
 });
