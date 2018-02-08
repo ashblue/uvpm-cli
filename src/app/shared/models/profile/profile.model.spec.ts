@@ -20,10 +20,6 @@ describe('ModelProfile', () => {
       expect(profile).to.be.ok;
     });
 
-    afterEach(async () => {
-      await profile.clear();
-    });
-
     describe('save', () => {
       it('should write settings to storage', async () => {
         profile.email = 'asdf@asdf.com';

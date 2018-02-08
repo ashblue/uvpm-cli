@@ -17,11 +17,6 @@ describe('CmdLogin', () => {
   });
 
   describe('when initialized', () => {
-    afterEach(async () => {
-      const profile = new ModelProfile();
-      await profile.clear();
-    });
-
     it('should fail if a server is not set', async () => {
       const cmd = new CmdLogin(new Command(), new StubInquirer() as any);
       await cmd.action();

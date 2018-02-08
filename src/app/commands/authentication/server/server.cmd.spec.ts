@@ -13,11 +13,6 @@ describe('CmdServer', () => {
   });
 
   describe('when initialized', () => {
-    afterEach(async () => {
-      const profile = new ModelProfile();
-      await profile.clear();
-    });
-
     describe('server', () => {
       it('should print the current server', async () => {
         const url = 'http://asdf.com';
