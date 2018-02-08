@@ -5,13 +5,13 @@ class Config {
    * ID of the database for testing
    * @type {string}
    */
-  private DB_ID_TEST = 'db-test';
+  private DB_ID_TEST = '.db-test';
 
   /**
    * ID of the production database
    * @type {string}
    */
-  private DB = 'db';
+  private DB = '.db';
 
   public get dbId () {
     /* istanbul ignore else */
