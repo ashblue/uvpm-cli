@@ -12,23 +12,57 @@ describe('CommandCollection', () => {
     expect(col).to.be.ok;
   });
 
-  it('should inject an init command', () => {
-    const col = new CommandCollection(new commander.Command(), inquirer);
+  describe('generators', () => {
+    it('should inject an init command', () => {
+      const col = new CommandCollection(new commander.Command(), inquirer);
 
-    const match = col.commandInstances.find((i) => {
-      return i.name.toLowerCase().includes('init');
+      const match = col.commandInstances.find((i) => {
+        return i.name.toLowerCase().includes('init');
+      });
+
+      expect(match).to.be.ok;
     });
-
-    expect(match).to.be.ok;
   });
 
-  it('should inject a server command', () => {
-    const col = new CommandCollection(new commander.Command(), inquirer);
+  describe('authentication', () => {
+    it('should inject a server command', () => {
+      const col = new CommandCollection(new commander.Command(), inquirer);
 
-    const match = col.commandInstances.find((i) => {
-      return i.name.toLowerCase().includes('server');
+      const match = col.commandInstances.find((i) => {
+        return i.name.toLowerCase().includes('server');
+      });
+
+      expect(match).to.be.ok;
     });
 
-    expect(match).to.be.ok;
+    it('should inject a login command', () => {
+      const col = new CommandCollection(new commander.Command(), inquirer);
+
+      const match = col.commandInstances.find((i) => {
+        return i.name.toLowerCase().includes('login');
+      });
+
+      expect(match).to.be.ok;
+    });
+
+    it('should inject a logout command', () => {
+      const col = new CommandCollection(new commander.Command(), inquirer);
+
+      const match = col.commandInstances.find((i) => {
+        return i.name.toLowerCase().includes('logout');
+      });
+
+      expect(match).to.be.ok;
+    });
+
+    it('should inject a whoami command', () => {
+      const col = new CommandCollection(new commander.Command(), inquirer);
+
+      const match = col.commandInstances.find((i) => {
+        return i.name.toLowerCase().includes('whoami');
+      });
+
+      expect(match).to.be.ok;
+    });
   });
 });
