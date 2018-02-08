@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "npm run watch",
+    "postinstall": "npm run build",
     "watch": "npm run lint && tsc -w",
     "build": "npm run lint && tsc",
     "lint": "tslint -c tslint.json \"src/**/*.ts\"",
@@ -18,6 +19,9 @@
     "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
     "precommit": "npm run lint && npm run build",
     "prepush": "npm run test:all"
+  },
+  "bin": {
+    "uvpm": "./bin/uvpm"
   },
   "nyc": {
     "check-coverage": true,
