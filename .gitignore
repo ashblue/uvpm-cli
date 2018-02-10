@@ -64,3 +64,4 @@ typings/
 # Custom ignores
 dist/
 .db/
+.db-test/

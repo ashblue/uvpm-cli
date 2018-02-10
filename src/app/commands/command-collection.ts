@@ -7,6 +7,9 @@ import * as process from 'process';
 import * as inquirer from 'inquirer';
 import { CmdInit } from './generators/init/init.cmd';
 import { CmdServer } from './authentication/server/server.cmd';
+import { CmdLogin } from './authentication/login/login.cmd';
+import { CmdLogout } from './authentication/logout/logout.cmd';
+import { CmdWhoami } from './authentication/whoami/whoami.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -14,6 +17,9 @@ export class CommandCollection {
     CmdHelloWord,
     CmdInit,
     CmdServer,
+    CmdLogin,
+    CmdLogout,
+    CmdWhoami,
   ];
 
   constructor (private program: Command, private inq: inquirer.Inquirer) {
