@@ -36,7 +36,7 @@ export class ModelProfile implements IProfile {
   }
 
   constructor () {
-    this.db = new PouchDB(config.dbId);
+    this.db = new PouchDB(config.dbFileAbsolute);
   }
 
   public load (): Promise<void> {

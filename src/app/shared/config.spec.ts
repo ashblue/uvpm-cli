@@ -15,12 +15,10 @@ describe('CommandCollection', () => {
 
       const stub = sinon.stub(config, '_getInstalledPath')
         .callsFake(() => {
-          return new Promise((resolve) => {
-            resolve('/versions/node/v9.4.0/lib/node_modules/uvpm-cli');
-          });
+          return pathSuccess;
         });
 
-      const p = await config.getfolderRoot();
+      const p = await config.folderRoot;
 
       expect(stub.called).to.be.ok;
       expect(p).to.eq(pathSuccess);
@@ -29,17 +27,12 @@ describe('CommandCollection', () => {
     });
 
     it('should return the local path to the repo on failure', async () => {
-      const pathFailure = __dirname;
-
       const stub = sinon.stub(config, '_getInstalledPath')
         .callsFake(() => {
-          // @ts-ignore
-          return new Promise((resolve, reject) => {
-            reject(pathFailure);
-          });
+          throw new Error();
         });
 
-      const p = await config.getfolderRoot();
+      const p = await config.folderRoot;
       const pLastLetters = p.substr(p.length - 8);
 
       expect(stub.called).to.be.ok;

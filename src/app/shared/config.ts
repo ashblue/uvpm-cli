@@ -1,4 +1,4 @@
-import { getInstalledPath } from 'get-installed-path';
+import { getInstalledPathSync } from 'get-installed-path';
 
 class Config {
   public ENV_TEST = 'TEST';
@@ -14,6 +14,10 @@ class Config {
    * @type {string}
    */
   private DB = '.db';
+
+  public get dbFileAbsolute () {
+    return `${config.folderRoot}/${config.dbId}`;
+  }
 
   public get dbId () {
     /* istanbul ignore else */
@@ -32,18 +36,17 @@ class Config {
     return process.env[this.ENV_TEST] === 'true';
   }
 
-  public getfolderRoot (): Promise<string> {
-    return new Promise<string>((resolve) => {
-      this._getInstalledPath('uvpm-cli')
-        .then((path) => {
-          resolve(path);
-        })
-        .catch(() => {
-          const targetPath = 'uvpm-cli';
-          const rootPath = __dirname.substring(0, __dirname.indexOf('uvpm-cli') + targetPath.length);
-          resolve(rootPath);
-        });
-    });
+  public get folderRoot (): string {
+    let root: string;
+
+    try {
+      root = this._getInstalledPath('uvpm-cli');
+    } catch {
+      const targetPath = 'uvpm-cli';
+      root = __dirname.substring(0, __dirname.indexOf('uvpm-cli') + targetPath.length);
+    }
+
+    return root;
   }
 
   /**
@@ -54,8 +57,8 @@ class Config {
    * @private
    */
   // istanbul ignore next
-  public _getInstalledPath (pack: string, opts?: any): Promise<string> {
-    return getInstalledPath(pack, opts);
+  public _getInstalledPath (pack: string, opts?: any): string {
+    return getInstalledPathSync(pack, opts);
   }
 }
 
