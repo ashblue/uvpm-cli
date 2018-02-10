@@ -58,6 +58,7 @@
     "axios": "^0.17.1",
     "chalk": "^2.3.0",
     "commander": "^2.13.0",
+    "get-installed-path": "^4.0.8",
     "inquirer": "^5.0.1",
     "nock": "^9.1.6",
     "pjson": "^1.0.9",
