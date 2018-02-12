@@ -10,6 +10,7 @@ import { CmdServer } from './authentication/server/server.cmd';
 import { CmdLogin } from './authentication/login/login.cmd';
 import { CmdLogout } from './authentication/logout/logout.cmd';
 import { CmdWhoami } from './authentication/whoami/whoami.cmd';
+import { CmdVersion } from './publishing/version/version.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -20,6 +21,7 @@ export class CommandCollection {
     CmdLogin,
     CmdLogout,
     CmdWhoami,
+    CmdVersion,
   ];
 
   constructor (private program: Command, private inq: inquirer.Inquirer) {

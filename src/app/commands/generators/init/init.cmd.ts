@@ -6,8 +6,6 @@ import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-confi
 import * as fs from 'fs';
 
 export class CmdInit extends CmdBase {
-  public static fileName = 'uvpm.json';
-
   private questions: Questions = [
     {
       type: 'input',
@@ -41,12 +39,12 @@ export class CmdInit extends CmdBase {
   }
 
   public get description (): string {
-    return `Generates a "${CmdInit.fileName}" file from where the command is run.
+    return `Generates a "${ModelUvpmConfig.fileName}" file from where the command is run.
       Automatically fails if a file already exists.`;
   }
 
   protected onAction (): Promise<void> {
-    this.log(chalk.bold(`${CmdInit.fileName} file generator`));
+    this.log(chalk.bold(`${ModelUvpmConfig.fileName} file generator`));
     return this.createAnswers();
   }
 
@@ -58,11 +56,11 @@ export class CmdInit extends CmdBase {
           return this.createConfig(answers as IUvpmConfig);
         })
         .then(() => {
-          this.log(chalk.green(`Created file ${CmdInit.fileName} successfully`));
+          this.log(chalk.green(`Created file ${ModelUvpmConfig.fileName} successfully`));
           resolve();
         })
         .catch(/* istanbul ignore next */(err) => {
-          this.logErr(chalk.red(`Failed to generate ${CmdInit.fileName}`));
+          this.logErr(chalk.red(`Failed to generate ${ModelUvpmConfig.fileName}`));
           this.logErr('Error Log:');
           this.logErr(err);
 
@@ -83,13 +81,13 @@ export class CmdInit extends CmdBase {
       }, {}) as IUvpmConfig;
 
     const configData = new ModelUvpmConfig(overridesSanitize);
-    const configString = JSON.stringify(configData, null, '\t');
+    const configString = JSON.stringify(configData, null, 2);
 
     return new Promise((resolve, reject) => {
-      const path = `./${CmdInit.fileName}`;
+      const path = `./${ModelUvpmConfig.fileName}`;
 
       if (fs.existsSync(path)) {
-        reject(`Cannot overwrite ${CmdInit.fileName}`);
+        reject(`Cannot overwrite ${ModelUvpmConfig.fileName}`);
         return;
       }
 

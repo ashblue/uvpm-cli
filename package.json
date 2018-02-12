@@ -13,11 +13,11 @@
     "test": "TEST=true mocha --opts tests/mocha.opts --watch \"src/**/*.spec.ts\"",
     "test:single": "TEST=true mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --opts tests/mocha.opts --watch",
-    "test:all": "npm run lint && npm run build && npm run coverage",
+    "test:all": "npm run build && npm run coverage",
     "coverage": "npm run nyc:shim && TEST=true nyc --reporter=text --reporter=html mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "coverage:simple": "npm run nyc:shim && TEST=true nyc mocha --opts tests/mocha.opts \"src/**/*.spec.ts\"",
     "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
-    "precommit": "npm run lint && npm run build",
+    "precommit": "npm run build",
     "prepush": "npm run test:all"
   },
   "bin": {
