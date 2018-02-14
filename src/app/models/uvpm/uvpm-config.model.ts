@@ -1,4 +1,4 @@
-import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
+import { IUvpmConfig } from '../../shared/interfaces/uvpm/config/i-uvpm-config';
 import * as fs from 'fs';
 import { ModelVersion } from '../version/version.model';
 
@@ -16,6 +16,9 @@ export const configDefaults = Object.freeze({
   },
 });
 
+/**
+ * @TODO Rename ModelProjectConfig
+ */
 export class ModelUvpmConfig implements IUvpmConfig {
   public static fileName = 'uvpm.json';
 

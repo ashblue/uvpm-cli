@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { config } from '../../shared/config';
 import { Inquirer } from 'inquirer';
 import { ICmdOption } from './i-cmd-option';
+import { ServiceDatabase } from '../../services/database/database.service';
 
 export abstract class CmdBase {
   public abstract get name (): string;
@@ -32,7 +33,11 @@ export abstract class CmdBase {
     return [];
   }
 
-  constructor (protected program: Command, protected inquirer: Inquirer) {
+  constructor (
+    protected db: ServiceDatabase,
+    protected program: Command,
+    protected inquirer: Inquirer,
+  ) {
     this.addCliCommnd();
   }
 

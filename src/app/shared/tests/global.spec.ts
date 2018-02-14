@@ -1,6 +1,5 @@
-import { config } from '../config';
-const PouchDB = require('pouchdb-node');
+import { ServiceDatabase } from '../../services/database/database.service';
 
 beforeEach(async () => {
-  return await new PouchDB(config.dbFileAbsolute).destroy();
+  return await new ServiceDatabase().destroy();
 });

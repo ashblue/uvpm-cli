@@ -1,14 +1,13 @@
 import * as chai from 'chai';
 import { ModelProfile } from './profile.model';
-import { IProfile } from '../../interfaces/profiles/i-profile';
-import { config } from '../../config';
-const PouchDB = require('pouchdb-node');
+import { IProfile } from '../../shared/interfaces/profiles/i-profile';
+import { ServiceDatabase } from '../../services/database/database.service';
 
 const expect = chai.expect;
 
 describe('ModelProfile', () => {
   it('should initialize', () => {
-    const model = new ModelProfile();
+    const model = new ModelProfile(new ServiceDatabase());
 
     expect(model).to.be.ok;
   });
@@ -17,8 +16,7 @@ describe('ModelProfile', () => {
     let profile: ModelProfile;
 
     beforeEach(() => {
-      profile = new ModelProfile();
-      expect(profile).to.be.ok;
+      profile = new ModelProfile(new ServiceDatabase());
     });
 
     describe('save', () => {
@@ -29,8 +27,8 @@ describe('ModelProfile', () => {
 
         await profile.save();
 
-        const db = new PouchDB(config.dbId);
-        const result: IProfile = await db.get(ModelProfile.profileId);
+        const db = new ServiceDatabase().profile;
+        const result: IProfile = await db.get<IProfile>(ModelProfile.profileId);
 
         expect(result._id).to.eq(ModelProfile.profileId);
         expect(result.email).to.eq(profile.email);

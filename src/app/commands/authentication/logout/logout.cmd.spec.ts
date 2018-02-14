@@ -1,14 +1,15 @@
 import * as chai from 'chai';
 import { Command } from 'commander';
 import * as inquirer from 'inquirer';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdLogout } from './logout.cmd';
+import { ServiceDatabase } from '../../../services/database/database.service';
 
 const expect = chai.expect;
 
 describe('CmdWhoami', () => {
   it('should initialize', () => {
-    const cmd = new CmdLogout(new Command(), inquirer);
+    const cmd = new CmdLogout(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
@@ -17,8 +18,8 @@ describe('CmdWhoami', () => {
     let cmd: CmdLogout;
 
     beforeEach(async () => {
-      profile = new ModelProfile();
-      cmd = new CmdLogout(new Command(), inquirer);
+      profile = new ModelProfile(new ServiceDatabase());
+      cmd = new CmdLogout(new ServiceDatabase(), new Command(), inquirer);
     });
 
     describe('logout', () => {

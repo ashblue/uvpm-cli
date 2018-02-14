@@ -1,6 +1,6 @@
 import { CmdBase } from '../../base/base.cmd';
 import chalk from 'chalk';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 import { ILoginRequest } from './i-login-request';
 import { Questions } from 'inquirer';
 import { ILoginResponse } from './i-login-response';
@@ -31,7 +31,7 @@ export class CmdLogin extends CmdBase {
   }
 
   protected async onAction (): Promise<void> {
-    const profile = new ModelProfile();
+    const profile = new ModelProfile(this.db);
     await profile.load();
 
     return new Promise<void>((resolve, reject) => {

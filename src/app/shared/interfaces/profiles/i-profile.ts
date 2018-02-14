@@ -1,7 +1,7 @@
-export interface IProfile {
+import { IPouchModel } from '../pouch-db/i-pouch-model';
+
+export interface IProfile extends IPouchModel {
   token: string|null;
   email: string|null;
   server: string|null;
-  _id?: string;
-  _rev?: any;
 }

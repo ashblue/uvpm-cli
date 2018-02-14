@@ -2,13 +2,14 @@ import * as chai from 'chai';
 import { Command } from 'commander';
 import { CmdServer } from './server.cmd';
 import * as inquirer from 'inquirer';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
+import { ServiceDatabase } from '../../../services/database/database.service';
 
 const expect = chai.expect;
 
 describe('CmdServer', () => {
   it('should initialize', () => {
-    const cmd = new CmdServer(new Command(), inquirer);
+    const cmd = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
@@ -16,7 +17,7 @@ describe('CmdServer', () => {
     describe('server', () => {
       it('should print the current server', async () => {
         const url = 'http://asdf.com';
-        const cmdServer = new CmdServer(new Command(), inquirer);
+        const cmdServer = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
 
         await cmdServer.action(url);
         await cmdServer.action();
@@ -25,7 +26,7 @@ describe('CmdServer', () => {
       });
 
       it('should display an error if no server has been set', async () => {
-        const cmdInit = new CmdServer(new Command(), inquirer);
+        const cmdInit = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
 
         await cmdInit.action();
 
@@ -36,8 +37,9 @@ describe('CmdServer', () => {
     describe('server [url]', () => {
       it('should write to the user profile with the server"', async () => {
         const url = 'http://asdf.com';
-        const cmdServer = new CmdServer(new Command(), inquirer);
-        const profile = new ModelProfile();
+        const db = new ServiceDatabase();
+        const cmdServer = new CmdServer(db, new Command(), inquirer);
+        const profile = new ModelProfile(db);
 
         await cmdServer.action(url);
         await profile.load();
@@ -49,8 +51,9 @@ describe('CmdServer', () => {
       it('should overwrite the previous url if run again', async () => {
         const url = 'http://asdf.com';
         const newUrl = 'http://fdsa.com';
-        const cmdServer = new CmdServer(new Command(), inquirer);
-        const profile = new ModelProfile();
+        const db = new ServiceDatabase();
+        const cmdServer = new CmdServer(db, new Command(), inquirer);
+        const profile = new ModelProfile(db);
 
         await cmdServer.action(url);
         await cmdServer.action(newUrl);
