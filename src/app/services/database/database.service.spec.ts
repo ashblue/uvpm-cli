@@ -1,6 +1,7 @@
 import * as chai from 'chai';
 import { ServiceDatabase } from './database.service';
 import * as fs from 'fs';
+import * as sinon from 'sinon';
 
 const expect = chai.expect;
 
@@ -24,13 +25,36 @@ describe('ServiceDatabase', () => {
     expect(fs.existsSync(ServiceDatabase.cachePath)).to.be.ok;
   });
 
-  it('should delete the database folder', async () => {
-    const serviceDb = new ServiceDatabase();
+  describe('destroy', () => {
+    it('should delete the database folder', async () => {
+      const serviceDb = new ServiceDatabase();
 
-    await serviceDb.destroy();
+      await serviceDb.destroy();
 
-    expect(fs.existsSync(ServiceDatabase.databasePath)).to.not.be.ok;
-    expect(fs.existsSync(ServiceDatabase.profilePath)).to.not.be.ok;
-    expect(fs.existsSync(ServiceDatabase.cachePath)).to.not.be.ok;
+      expect(fs.existsSync(ServiceDatabase.databasePath)).to.not.be.ok;
+      expect(fs.existsSync(ServiceDatabase.profilePath)).to.not.be.ok;
+      expect(fs.existsSync(ServiceDatabase.cachePath)).to.not.be.ok;
+    });
+
+    it('should fail if rmdir returns an error', async () => {
+      const serviceDb = new ServiceDatabase();
+      const errMsg = 'Error occurred';
+      const stub = sinon.stub(fs, 'rmdir');
+      stub.callsFake((path: string, method: (err: string) => void) => {
+        expect(path).to.be.ok;
+        method(errMsg);
+      });
+
+      let e: any;
+      try {
+        await serviceDb.destroy();
+      } catch (response) {
+        e = response;
+      }
+
+      expect(e).to.eq(errMsg);
+
+      stub.restore();
+    });
   });
 });
