@@ -4,6 +4,8 @@ import { ServiceDatabase } from '../database/database.service';
 import * as nock from 'nock';
 import { ModelProfile } from '../../models/profile/profile.model';
 import * as fs from 'fs';
+import { FolderGen } from '../../shared/tests/folder-gen';
+import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
@@ -38,11 +40,43 @@ describe('ServicePackageVersionCache', () => {
     const archiveName = 'my-archive.b2z';
     const url = 'http://test.com';
     const localFile = `.tmp/${archiveName}`;
-    const fileData = 'I am the stored file data';
     const archive = `${url}/${archiveName}`;
 
+    let fileData: string;
     let serviceCache: ServicePackageVersionCache;
     let db: ServiceDatabase;
+
+    before(() => {
+      const config = new ModelUvpmConfig();
+
+      const filePackage = new FolderGen([
+        {
+          path: '.',
+          file: 'uvpm.json',
+          contents: JSON.stringify(config),
+        },
+        {
+          path: 'hello-world.txt',
+          file: 'test',
+          contents: 'Hello World',
+        },
+        {
+          path: 'anoter-test/nested',
+          file: 'lorem-ipsum.txt',
+          contents: 'Lorem Ipsum',
+        },
+      ]);
+
+      // @TODO This should be a helper class with associated data
+      // @TODO Turn fileData into a b2z zip
+      // uvpm.json in root
+      // test/hello-world.txt in root
+      // anoter-test/nested/lorem-ipsum.txt
+      // Package folder structure into a zip
+      // Turn zip data into a string
+
+      fileData = 'zipped files';
+    });
 
     beforeEach(() => {
       db = new ServiceDatabase();
@@ -64,7 +98,25 @@ describe('ServicePackageVersionCache', () => {
         expect(model._rev).to.be.ok;
       });
 
-      it('should attach the file as a PouchDB attachment after downloading it', async () => {
+      it('should unpack the zip into a .cache folder', async () => {
+        const cacheFolder = '.cache';
+        const packageFolder = `${cacheFolder}/${packageName}`;
+        const rootFolder = `${cacheFolder}/${packageName}/${version}`;
+
+        const model = await serviceCache.create(packageName, {
+          name: version,
+          archive,
+        });
+
+        expect(model).to.be.ok;
+        expect(fs.existsSync(cacheFolder)).to.be.ok;
+        expect(fs.existsSync(packageFolder)).to.be.ok;
+        expect(fs.existsSync(rootFolder)).to.be.ok;
+
+        // @TODO Verify files have been unpacked successfully in proper places
+      });
+
+      xit('should attach the file as a PouchDB attachment after downloading it', async () => {
         const model = await serviceCache.create(packageName, {
           name: version,
           archive,
