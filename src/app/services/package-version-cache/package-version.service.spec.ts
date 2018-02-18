@@ -76,6 +76,8 @@ describe('ServicePackageVersionCache', () => {
       // Turn zip data into a string
 
       fileData = 'zipped files';
+
+      expect(filePackage).to.be.ok;
     });
 
     beforeEach(() => {
