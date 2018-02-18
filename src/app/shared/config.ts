@@ -2,7 +2,6 @@ import { getInstalledPathSync } from 'get-installed-path';
 
 class Config {
   public ENV_TEST = 'TEST';
-  public TMP_FOLDER = '.tmp';
 
   /**
    * Check if this is the testing environment

@@ -1,18 +1,12 @@
 import { ServiceDatabase } from '../../services/database/database.service';
-import * as fs from 'fs';
-import { config } from '../config';
-import * as rimraf from 'rimraf';
+import { serviceTmp } from '../../services/tmp/tmp.service';
 
 beforeEach(() => {
-  if (!fs.existsSync(config.TMP_FOLDER)) {
-    fs.mkdirSync(config.TMP_FOLDER);
-  }
+  serviceTmp.create();
 });
 
 afterEach(async () => {
-  if (fs.existsSync(config.TMP_FOLDER)) {
-    rimraf.sync(config.TMP_FOLDER);
-  }
+  serviceTmp.clear();
 
   await new ServiceDatabase().destroy();
 });
