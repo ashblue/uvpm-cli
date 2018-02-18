@@ -1,7 +1,7 @@
 import { CmdBase } from '../../base/base.cmd';
 import chalk from 'chalk';
 import { Questions } from 'inquirer';
-import { configDefaults, ModelUvpmConfig } from '../../../shared/models/uvpm/uvpm-config.model';
+import { configDefaults, ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
 import * as fs from 'fs';
 

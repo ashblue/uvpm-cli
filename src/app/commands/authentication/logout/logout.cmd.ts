@@ -1,5 +1,5 @@
 import { CmdBase } from '../../base/base.cmd';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 
 export class CmdLogout extends CmdBase {
   get name (): string {
@@ -20,7 +20,7 @@ export class CmdLogout extends CmdBase {
 
   private logOut (): Promise<void> {
     return new Promise<void>((resolve) => {
-      const profile = new ModelProfile();
+      const profile = new ModelProfile(this.db);
       profile.load()
         .then(() => {
           profile.email = null;

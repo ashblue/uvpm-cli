@@ -18,6 +18,12 @@
     "ordered-imports": false,
     "object-curly-spacing": true,
     "no-empty-interface": false,
-    "jsdoc-format": true
+    "jsdoc-format": true,
+    "variable-name": [
+      "allow-leading-underscore",
+      "ban-keywords",
+      "check-format",
+      "allow-pascal-case"
+    ]
   }
 }

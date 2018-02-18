@@ -1,6 +1,6 @@
 import { CmdBase } from '../../base/base.cmd';
-import { ModelUvpmConfig } from '../../../shared/models/uvpm/uvpm-config.model';
-import { ModelVersion } from '../../../shared/models/version/version.model';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import { ModelVersion } from '../../../models/version/version.model';
 
 export class CmdVersion extends CmdBase {
   /**

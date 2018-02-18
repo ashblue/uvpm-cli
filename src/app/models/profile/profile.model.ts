@@ -1,7 +1,6 @@
-import { IProfile } from '../../interfaces/profiles/i-profile';
+import { IProfile } from '../../shared/interfaces/profiles/i-profile';
 import Database = PouchDB.Database;
-import { config } from '../../config';
-const PouchDB = require('pouchdb-node');
+import { ServiceDatabase } from '../../services/database/database.service';
 
 export class ModelProfile implements IProfile {
   public static profileId = 'default';
@@ -35,8 +34,8 @@ export class ModelProfile implements IProfile {
       && this.email !== undefined;
   }
 
-  constructor () {
-    this.db = new PouchDB(config.dbFileAbsolute);
+  constructor (serviceDb: ServiceDatabase) {
+    this.db = serviceDb.profile;
   }
 
   public load (): Promise<void> {

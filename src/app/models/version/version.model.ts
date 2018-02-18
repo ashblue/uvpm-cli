@@ -1,4 +1,6 @@
-const VERSION_DEFAULTS = {
+import { ISemanticVersion } from '../../shared/interfaces/versions/i-semantic-version';
+
+const VERSION_DEFAULTS: ISemanticVersion = {
   major: 1,
   minor: 0,
   patch: 0,
@@ -6,7 +8,7 @@ const VERSION_DEFAULTS = {
 
 Object.freeze(VERSION_DEFAULTS);
 
-export class ModelVersion {
+export class ModelVersion implements ISemanticVersion {
   public static isValid (version: string) {
     return /^[0-9]+.[0-9]+.[0-9]+$/.exec(version);
   }

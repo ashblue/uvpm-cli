@@ -1,5 +1,5 @@
 import { CmdBase } from '../../base/base.cmd';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 import chalk from 'chalk';
 
 export class CmdServer extends CmdBase {
@@ -27,7 +27,7 @@ export class CmdServer extends CmdBase {
 
   private setUrl (url: string): Promise<void> {
     return new Promise<void>((resolve) => {
-      const profile = new ModelProfile();
+      const profile = new ModelProfile(this.db);
 
       profile.load()
         .then(() => {
@@ -44,7 +44,7 @@ export class CmdServer extends CmdBase {
 
   private printServer (): Promise<void> {
     return new Promise<void>((resolve) => {
-      const profile = new ModelProfile();
+      const profile = new ModelProfile(this.db);
 
       profile.load()
         .then(() => {

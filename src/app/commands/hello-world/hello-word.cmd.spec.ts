@@ -4,18 +4,19 @@ import * as inquirer from 'inquirer';
 
 import sinon = require('sinon');
 import * as chai from 'chai';
+import { ServiceDatabase } from '../../services/database/database.service';
 const expect = chai.expect;
 
 describe('CtrlHelloWorld', () => {
   it('should initialize', () => {
-    const inst = new CmdHelloWord(new Command(), inquirer);
+    const inst = new CmdHelloWord(new ServiceDatabase(), new Command(), inquirer);
 
     expect(inst).to.be.ok;
   });
 
   it('should run the hello world command', async () => {
     const cmd = new Command();
-    const inst = new CmdHelloWord(cmd, inquirer);
+    const inst = new CmdHelloWord(new ServiceDatabase(), cmd, inquirer);
     const logSpy = sinon.spy(console, 'log');
 
     await inst.action();

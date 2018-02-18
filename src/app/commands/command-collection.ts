@@ -11,10 +11,11 @@ import { CmdLogin } from './authentication/login/login.cmd';
 import { CmdLogout } from './authentication/logout/logout.cmd';
 import { CmdWhoami } from './authentication/whoami/whoami.cmd';
 import { CmdVersion } from './publishing/version/version.cmd';
+import { ServiceDatabase } from '../services/database/database.service';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
-  private commands: Array<{ new (program: Command, inq: inquirer.Inquirer): CmdBase }> = [
+  private commands: Array<{ new (db: ServiceDatabase, program: Command, inq: inquirer.Inquirer): CmdBase }> = [
     CmdHelloWord,
     CmdInit,
     CmdServer,
@@ -24,11 +25,11 @@ export class CommandCollection {
     CmdVersion,
   ];
 
-  constructor (private program: Command, private inq: inquirer.Inquirer) {
+  constructor (private db: ServiceDatabase, private program: Command, private inq: inquirer.Inquirer) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
-      this.commandInstances.push(new c(program, this.inq));
+      this.commandInstances.push(new c(this.db, program, this.inq));
     });
   }
 

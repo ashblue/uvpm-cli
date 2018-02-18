@@ -1,14 +1,15 @@
 import * as chai from 'chai';
 import { Command } from 'commander';
 import * as inquirer from 'inquirer';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdWhoami } from './whoami.cmd';
+import { ServiceDatabase } from '../../../services/database/database.service';
 
 const expect = chai.expect;
 
 describe('CmdWhoami', () => {
   it('should initialize', () => {
-    const cmd = new CmdWhoami(new Command(), inquirer);
+    const cmd = new CmdWhoami(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
@@ -17,8 +18,9 @@ describe('CmdWhoami', () => {
     let cmd: CmdWhoami;
 
     beforeEach(async () => {
-      profile = new ModelProfile();
-      cmd = new CmdWhoami(new Command(), inquirer);
+      const db = new ServiceDatabase();
+      profile = new ModelProfile(db);
+      cmd = new CmdWhoami(db, new Command(), inquirer);
     });
 
     describe('whoami', () => {

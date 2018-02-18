@@ -1,6 +1,7 @@
 import { CmdBase } from '../../base/base.cmd';
-import { ModelProfile } from '../../../shared/models/profile/profile.model';
+import { ModelProfile } from '../../../models/profile/profile.model';
 import chalk from 'chalk';
+import { ServiceDatabase } from '../../../services/database/database.service';
 
 export class CmdWhoami extends CmdBase {
   get name (): string {
@@ -21,7 +22,7 @@ export class CmdWhoami extends CmdBase {
 
   private printUser (): Promise<void> {
     return new Promise<void>((resolve) => {
-      const profile = new ModelProfile();
+      const profile = new ModelProfile(new ServiceDatabase());
 
       profile.load()
         .then(() => {
