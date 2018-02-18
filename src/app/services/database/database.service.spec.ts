@@ -11,9 +11,7 @@ describe('ServiceDatabase', () => {
 
     expect(serviceDb).to.be.ok;
     expect(serviceDb.profile).to.be.ok;
-    expect(serviceDb.packageVersionCache).to.be.ok;
     expect(ServiceDatabase.profilePath).to.be.ok;
-    expect(ServiceDatabase.cachePath).to.be.ok;
   });
 
   it('should create a database folder at the root of the project', () => {
@@ -22,7 +20,6 @@ describe('ServiceDatabase', () => {
     expect(serviceDb).to.be.ok;
     expect(fs.existsSync(ServiceDatabase.databasePath)).to.be.ok;
     expect(fs.existsSync(ServiceDatabase.profilePath)).to.be.ok;
-    expect(fs.existsSync(ServiceDatabase.cachePath)).to.be.ok;
   });
 
   describe('destroy', () => {
@@ -33,7 +30,6 @@ describe('ServiceDatabase', () => {
 
       expect(fs.existsSync(ServiceDatabase.databasePath)).to.not.be.ok;
       expect(fs.existsSync(ServiceDatabase.profilePath)).to.not.be.ok;
-      expect(fs.existsSync(ServiceDatabase.cachePath)).to.not.be.ok;
     });
 
     it('should fail if rmdir returns an error', async () => {
