@@ -5,10 +5,10 @@ import { ModelVersion } from '../../../../models/version/version.model';
 export interface IUvpmConfig {
   name: string;
   version: ModelVersion|string;
-  author: string;
-  homepage: string;
-  description: string;
-  license: string;
-  dependencies: IUvpmPackageCollection;
-  publishing: IUvpmConfigPublishing;
+  author?: string;
+  homepage?: string;
+  description?: string;
+  license?: string;
+  dependencies?: IUvpmPackageCollection;
+  publishing?: IUvpmConfigPublishing;
 }

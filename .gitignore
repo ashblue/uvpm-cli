@@ -65,3 +65,4 @@ typings/
 dist/
 .db/
 .db-test/
+.tmp/
