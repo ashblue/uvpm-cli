@@ -6,6 +6,24 @@ import { IFile } from './i-file';
 
 const expect = chai.expect;
 
+function verifyFiles (rootPath: string, files: IFile[]) {
+  files.forEach((f) => {
+    let path = rootPath;
+    if (f.path !== '' && f.path) {
+      path += `/${f.path}`;
+    }
+
+    path += `/${f.file}`;
+
+    const contents = fs.readFileSync(path).toString();
+
+    expect(fs.existsSync(path)).to.be.ok;
+    if (f.contents) {
+      expect(contents).to.eq(f.contents);
+    }
+  });
+}
+
 describe('ExampleProject', () => {
   const defaultConfig: IUvpmConfig = {
     name: 'example',
@@ -67,18 +85,27 @@ describe('ExampleProject', () => {
     const files: IFile[] = [fileRoot, fileRootSibling, fileInFolder, fileNested];
     const example = new ExampleProject(defaultConfig, files);
 
-    files.forEach((f) => {
-      let path = example.root;
-      if (f.path !== '' && f.path) {
-        path += `/${f.path}`;
-      }
+    verifyFiles(example.root, files);
+  });
 
-      path += `/${f.file}`;
+  it('should generate files with a minimal syntax', () => {
+    const file: IFile = {
+      file: 'hello-world.txt',
+    };
 
-      const contents = fs.readFileSync(path).toString();
+    const fileContent: IFile = {
+      file: 'sibling.txt',
+      contents: 'Sibling',
+    };
 
-      expect(fs.existsSync(path)).to.be.ok;
-      expect(contents).to.eq(f.contents);
-    });
+    const filePath: IFile = {
+      file: 'file-in-folder.txt',
+      path: 'custom-folder',
+    };
+
+    const files: IFile[] = [file, fileContent, filePath];
+    const example = new ExampleProject(defaultConfig, files);
+
+    verifyFiles(example.root, files);
   });
 });

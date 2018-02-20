@@ -29,7 +29,7 @@ export class ExampleProject {
     this.config.save(`${this.root}`);
   }
 
-  private createFiles (files?: IFile[]) {
+  protected createFiles (files?: IFile[]) {
     if (!files) {
       return;
     }

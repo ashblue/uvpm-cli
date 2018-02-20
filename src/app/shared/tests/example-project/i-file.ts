@@ -1,5 +1,5 @@
 export interface IFile {
-  path: string;
+  path?: string;
   file: string;
-  contents: string;
+  contents?: string;
 }

@@ -33,9 +33,11 @@ export class ModelUvpmConfig implements IUvpmConfig {
 
   public publishing = {
     targetFolder: configDefaults.publishing.targetFolder,
-    ignore: [],
-    tests: [],
-    examples: [],
+    ignore: [
+      configDefaults.dependencies.outputFolder,
+    ],
+    tests: new Array<string>(),
+    examples: new Array<string>(),
     unityVersion: {
       min: '',
       max: '',
@@ -46,7 +48,7 @@ export class ModelUvpmConfig implements IUvpmConfig {
     return fs.existsSync(ModelUvpmConfig.fileName);
   }
 
-  constructor (override?: any) {
+  constructor (override?: IUvpmConfig) {
     if (!override) {
       return;
     }
