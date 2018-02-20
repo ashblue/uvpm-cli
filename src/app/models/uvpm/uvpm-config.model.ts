@@ -3,10 +3,7 @@ import * as fs from 'fs';
 import { ModelVersion } from '../version/version.model';
 
 export const configDefaults = Object.freeze({
-  name: '',
   version: '1.0.0',
-  description: '',
-  author: '',
   license: 'ISC',
   dependencies: {
     outputFolder: 'Assets/Plugins/UPM',
@@ -22,11 +19,11 @@ export const configDefaults = Object.freeze({
 export class ModelUvpmConfig implements IUvpmConfig {
   public static fileName = 'uvpm.json';
 
-  public name = configDefaults.name;
+  public name = '';
   public version = new ModelVersion(configDefaults.version);
-  public author = configDefaults.author;
+  public author = '';
   public homepage = '';
-  public description = configDefaults.description;
+  public description = '';
   public license = configDefaults.license;
 
   public dependencies = {
@@ -36,9 +33,11 @@ export class ModelUvpmConfig implements IUvpmConfig {
 
   public publishing = {
     targetFolder: configDefaults.publishing.targetFolder,
-    ignore: [],
-    tests: [],
-    examples: [],
+    ignore: [
+      configDefaults.dependencies.outputFolder,
+    ],
+    tests: new Array<string>(),
+    examples: new Array<string>(),
     unityVersion: {
       min: '',
       max: '',
@@ -49,7 +48,7 @@ export class ModelUvpmConfig implements IUvpmConfig {
     return fs.existsSync(ModelUvpmConfig.fileName);
   }
 
-  constructor (override?: any) {
+  constructor (override?: IUvpmConfig) {
     if (!override) {
       return;
     }
@@ -61,9 +60,10 @@ export class ModelUvpmConfig implements IUvpmConfig {
     Object.assign(this, override);
   }
 
-  public save (): Promise<void> {
+  public save (output = './'): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(ModelUvpmConfig.fileName, JSON.stringify(this, null, 2), (err) => {
+      const location = `${output}/${ModelUvpmConfig.fileName}`;
+      fs.writeFile(location, JSON.stringify(this, null, 2), (err) => {
         if (err) {
           reject(err);
           return;

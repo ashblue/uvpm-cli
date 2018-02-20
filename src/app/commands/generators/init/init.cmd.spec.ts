@@ -76,10 +76,10 @@ describe('CmdInit', () => {
       configData.version = new ModelVersion(configData.version as string);
 
       expect(configData).to.be.ok;
-      expect(configData.name).to.eq(configDefaults.name);
+      expect(configData.name).to.eq('');
       expect(configData.version.toString()).to.eq(configDefaults.version);
-      expect(configData.description).to.eq(configDefaults.description);
-      expect(configData.author).to.eq(configDefaults.author);
+      expect(configData.description).to.eq('');
+      expect(configData.author).to.eq('');
       expect(configData.license).to.eq(configDefaults.license);
     });
 
