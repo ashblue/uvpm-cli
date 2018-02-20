@@ -59,14 +59,14 @@ describe('ExampleProjectUnity', () => {
     expect(example.config.publishing.unityVersion.min).to.eq(unityVersionMin);
   });
 
-  it('should generate a Unity project', () => {
+  it('should generate a Unity project', async () => {
     const example = new ExampleProjectUnity();
-    example.createProject();
+    await example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles);
   });
 
-  it('should allow appending new generated files', () => {
+  it('should allow appending new generated files', async () => {
     const newFiles: IFile[] = [
       {
         file: 'test-file.txt',
@@ -77,7 +77,8 @@ describe('ExampleProjectUnity', () => {
       undefined,
       newFiles,
     );
-    example.createProject();
+
+    await example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles.concat(newFiles));
   });

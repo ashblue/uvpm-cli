@@ -3,6 +3,7 @@ import { ExampleProject } from './example-project';
 import * as fs from 'fs';
 import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
 import { IFile } from './i-file';
+import { serviceTmp } from '../../../services/tmp/tmp.service';
 
 const expect = chai.expect;
 
@@ -36,28 +37,38 @@ describe('ExampleProject', () => {
   });
 
   describe('createProject', () => {
-    it('should use the uvpm.json package name as the folder root name', () => {
+    it('should allow overriding the root', async () => {
       const example = new ExampleProject(defaultConfig);
-      const path = `${example.root}`;
+      const path = `${serviceTmp.tmpFolder}/nested-folder/${example.config.name}`;
 
-      example.createProject();
+      await example.createProject(path);
 
       expect(example).to.be.ok;
       expect(fs.existsSync(path)).to.be.ok;
     });
 
-    it('should spawn a uvpm.json file in the root', () => {
+    it('should use the uvpm.json package name as the folder root name', async () => {
+      const example = new ExampleProject(defaultConfig);
+      const path = `${example.root}`;
+
+      await example.createProject();
+
+      expect(example).to.be.ok;
+      expect(fs.existsSync(path)).to.be.ok;
+    });
+
+    it('should spawn a uvpm.json file in the root', async () => {
       const example = new ExampleProject(defaultConfig);
       const path = `${example.root}/uvpm.json`;
 
-      example.createProject();
+      await example.createProject();
 
       expect(example).to.be.ok;
       expect(fs.existsSync(path)).to.be.ok;
     });
   });
 
-  it('should turn a list of files, paths, and content into a hierarchy', () => {
+  it('should turn a list of files, paths, and content into a hierarchy', async () => {
     const fileRoot: IFile = {
       file: 'hello-world.txt',
       path: '',
@@ -84,12 +95,12 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [fileRoot, fileRootSibling, fileInFolder, fileNested];
     const example = new ExampleProject(defaultConfig, files);
-    example.createProject();
+    await example.createProject();
 
     verifyFiles(example.root, files);
   });
 
-  it('should generate files with a minimal syntax', () => {
+  it('should generate files with a minimal syntax', async () => {
     const file: IFile = {
       file: 'hello-world.txt',
     };
@@ -106,7 +117,7 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [file, fileContent, filePath];
     const example = new ExampleProject(defaultConfig, files);
-    example.createProject();
+    await example.createProject();
 
     verifyFiles(example.root, files);
   });

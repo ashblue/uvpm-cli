@@ -11,7 +11,12 @@ import * as mkdirp from 'mkdirp';
 export class ExampleProject {
   public config: ModelUvpmConfig;
 
+  private _root: string|undefined;
   public get root (): string {
+    if (this._root) {
+      return this._root;
+    }
+
     return `${serviceTmp.tmpFolder}/${this.config.name}`;
   }
 
@@ -22,11 +27,16 @@ export class ExampleProject {
     this.config = new ModelUvpmConfig(config);
   }
 
-  public createProject () {
-    serviceTmp.create();
-    fs.mkdirSync(this.root);
-    this.config.save(`${this.root}`);
-    this.createFiles(this.files);
+  public createProject (root?: string): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+      this._root = root;
+
+      serviceTmp.create();
+      mkdirp.sync(this.root);
+      await this.config.save(`${this.root}`);
+      this.createFiles(this.files);
+      resolve();
+    });
   }
 
   protected createFiles (files?: IFile[]) {
