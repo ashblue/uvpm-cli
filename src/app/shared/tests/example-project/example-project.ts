@@ -20,13 +20,13 @@ export class ExampleProject {
     public files?: IFile[],
   ) {
     this.config = new ModelUvpmConfig(config);
-    this.createFiles(files);
   }
 
   public createProject () {
     serviceTmp.create();
     fs.mkdirSync(this.root);
     this.config.save(`${this.root}`);
+    this.createFiles(this.files);
   }
 
   protected createFiles (files?: IFile[]) {

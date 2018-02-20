@@ -84,6 +84,7 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [fileRoot, fileRootSibling, fileInFolder, fileNested];
     const example = new ExampleProject(defaultConfig, files);
+    example.createProject();
 
     verifyFiles(example.root, files);
   });
@@ -105,6 +106,7 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [file, fileContent, filePath];
     const example = new ExampleProject(defaultConfig, files);
+    example.createProject();
 
     verifyFiles(example.root, files);
   });

@@ -61,6 +61,7 @@ describe('ExampleProjectUnity', () => {
 
   it('should generate a Unity project', () => {
     const example = new ExampleProjectUnity();
+    example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles);
   });
@@ -76,6 +77,7 @@ describe('ExampleProjectUnity', () => {
       undefined,
       newFiles,
     );
+    example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles.concat(newFiles));
   });
