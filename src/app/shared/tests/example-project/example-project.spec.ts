@@ -2,12 +2,12 @@ import * as chai from 'chai';
 import { ExampleProject } from './example-project';
 import * as fs from 'fs';
 import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
+import { IFile } from './i-file';
 
 const expect = chai.expect;
 
 describe('ExampleProject', () => {
   const defaultConfig: IUvpmConfig = {
-    version: '1.0.0',
     name: 'example',
   };
 
@@ -39,7 +39,46 @@ describe('ExampleProject', () => {
     });
   });
 
-  xit('should turn a list of files, paths, and content into a hierarchy', () => {
-    console.log('placeholder');
+  it('should turn a list of files, paths, and content into a hierarchy', () => {
+    const fileRoot: IFile = {
+      file: 'hello-world.txt',
+      path: '',
+      contents: 'Hello world',
+    };
+
+    const fileRootSibling: IFile = {
+      file: 'sibling.txt',
+      path: './',
+      contents: 'Sibling',
+    };
+
+    const fileInFolder: IFile = {
+      file: 'file-in-folder.txt',
+      path: 'custom-folder',
+      contents: 'Lorem Ipsum',
+    };
+
+    const fileNested: IFile = {
+      file: 'nested-file.txt',
+      path: 'nested/folder',
+      contents: 'I\'m a nested file',
+    };
+
+    const files: IFile[] = [fileRoot, fileRootSibling, fileInFolder, fileNested];
+    const example = new ExampleProject(defaultConfig, files);
+
+    files.forEach((f) => {
+      let path = example.root;
+      if (f.path !== '' && f.path) {
+        path += `/${f.path}`;
+      }
+
+      path += `/${f.file}`;
+
+      const contents = fs.readFileSync(path).toString();
+
+      expect(fs.existsSync(path)).to.be.ok;
+      expect(contents).to.eq(f.contents);
+    });
   });
 });
