@@ -105,43 +105,6 @@ describe('ServicePackage', () => {
         expect(err.toString()).to.contain(errMessage);
       });
 
-      it('should fail if a server has not been set', async () => {
-        const errMessage = 'Please set a server to run create';
-
-        modelProfile.email = 'ash@blueashes.com';
-        modelProfile.token = '12345';
-        await modelProfile.save();
-
-        let err: any = null;
-        try {
-          await packages.create(packageData);
-        } catch (e) {
-          err = e;
-        }
-
-        // Make sure nock was called at the assumed end point
-        expect(err).to.be.ok;
-        expect(err).to.eq(errMessage);
-      });
-
-      it('should fail if a user has not logged in', async () => {
-        const errMessage = 'You must be logged in to do that';
-
-        modelProfile.server = 'http://uvpm.com';
-        await modelProfile.save();
-
-        let err: any = null;
-        try {
-          await packages.create(packageData);
-        } catch (e) {
-          err = e;
-        }
-
-        // Make sure nock was called at the assumed end point
-        expect(err).to.be.ok;
-        expect(err).to.eq(errMessage);
-      });
-
       it('should fail if a header token is not provided', async () => {
         const successMessage = 'Success';
 
@@ -236,21 +199,6 @@ describe('ServicePackage', () => {
         // Make sure nock was called at the assumed end point
         expect(err).to.be.ok;
         expect(err.toString()).to.contain(errMessage);
-      });
-
-      it('should fail if a server has not been set', async () => {
-        const errMessage = 'Please set a server';
-
-        let err: any = null;
-        try {
-          await packages.get(packageName);
-        } catch (e) {
-          err = e;
-        }
-
-        // Make sure nock was called at the assumed end point
-        expect(err).to.be.ok;
-        expect(err).to.eq(errMessage);
       });
 
       it('should pass in an authorization token if logged in', async () => {
@@ -360,43 +308,6 @@ describe('ServicePackage', () => {
         // Make sure nock was called at the assumed end point
         expect(err).to.be.ok;
         expect(err.toString()).to.contain(errMsg);
-      });
-
-      it('should fail if a server has not been set', async () => {
-        const errMessage = 'Please set a server';
-
-        modelProfile.email = 'ash@blueashes.com';
-        modelProfile.token = '12345';
-        await modelProfile.save();
-
-        let err: any = null;
-        try {
-          await packages.delete(packageName);
-        } catch (e) {
-          err = e;
-        }
-
-        // Make sure nock was called at the assumed end point
-        expect(err).to.be.ok;
-        expect(err).to.eq(errMessage);
-      });
-
-      it('should fail if the user is not logged in', async () => {
-        const errMessage = 'You must be logged in to do that';
-
-        modelProfile.server = server;
-        await modelProfile.save();
-
-        let err: any = null;
-        try {
-          await packages.delete(packageName);
-        } catch (e) {
-          err = e;
-        }
-
-        // Make sure nock was called at the assumed end point
-        expect(err).to.be.ok;
-        expect(err).to.eq(errMessage);
       });
 
       it('should fail if a header token is not provided', async () => {

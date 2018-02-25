@@ -8,16 +8,6 @@ export class ServicePackages {
 
   public create (data: IPackage): Promise<IPackage> {
     return new Promise<IPackage>((resolve, reject) => {
-      if (!this.profile.isToken) {
-        reject('You must be logged in to do that');
-        return;
-      }
-
-      if (!this.profile.isServer) {
-        reject('Please set a server to run create');
-        return;
-      }
-
       axios.post(`${this.profile.server}/api/v1/packages`, data, {
         headers: {
           Authorization: `Bearer ${this.profile.token}`,
@@ -39,11 +29,6 @@ export class ServicePackages {
 
   public get (name: string): Promise<IPackage> {
     return new Promise<IPackage>((resolve, reject) => {
-      if (!this.profile.isServer) {
-        reject('Please set a server');
-        return;
-      }
-
       let httpConfig: AxiosRequestConfig = {};
       if (this.profile.isLoggedIn) {
         httpConfig = {
@@ -70,16 +55,6 @@ export class ServicePackages {
 
   public delete (name: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (!this.profile.isToken) {
-        reject('You must be logged in to do that');
-        return;
-      }
-
-      if (!this.profile.isServer) {
-        reject('Please set a server');
-        return;
-      }
-
       axios.delete(`${this.profile.server}/api/v1/packages/${name}`, {
         headers: {
           Authorization: `Bearer ${this.profile.token}`,
