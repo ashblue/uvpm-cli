@@ -68,6 +68,34 @@ export class ServicePackages {
     });
   }
 
-  // public delete (name: string): Promise<void> {
-  // }
+  public delete (name: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.profile.isToken) {
+        reject('You must be logged in to do that');
+        return;
+      }
+
+      if (!this.profile.isServer) {
+        reject('Please set a server');
+        return;
+      }
+
+      axios.delete(`${this.profile.server}/api/v1/packages/${name}`, {
+        headers: {
+          Authorization: `Bearer ${this.profile.token}`,
+        },
+      })
+        .then(() => {
+          resolve();
+        })
+        .catch((err) => {
+          if (err && err.response && err.response.data) {
+            reject(err.response.data);
+            return;
+          }
+
+          reject(err);
+        });
+    });
+  }
 }

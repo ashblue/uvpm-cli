@@ -14,6 +14,8 @@ describe('ServicePackage', () => {
 
   describe('when initialized', () => {
     const server = 'http://uvpm.com';
+    const packageName = 'my-package';
+
     let packages: ServicePackages;
     let modelProfile: ModelProfile;
     let serviceDatabase: ServiceDatabase;
@@ -165,9 +167,8 @@ describe('ServicePackage', () => {
     });
 
     describe('get', () => {
-      const packageName = 'my-package';
       const packageExample: IPackage = {
-        name: 'my-package',
+        name: packageName,
         author: {
           name: 'Ash Blue',
           email: 'ash@blueashes.com',
@@ -301,17 +302,123 @@ describe('ServicePackage', () => {
     });
 
     describe('delete', () => {
-      xit('should delete the package by name');
+      it('should delete the package by name', async () => {
+        modelProfile.server = server;
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
 
-      xit('should fail if the server returns an error code');
+        nock(modelProfile.server)
+          .delete(`/api/v1/packages/${packageName}`)
+          .reply(200);
 
-      xit('should fail if a non code based error triggers');
+        const result = await packages.delete(packageName);
 
-      xit('should fail if a server has not been set');
+        // Make sure nock was called at the assumed end point
+        expect(result).to.not.be.ok;
+      });
 
-      xit('should fail if the user is not logged in');
+      it('should fail if the server returns an error code', async () => {
+        const errMsg = 'Not found';
 
-      xit('should fail if a header token is not provided');
+        modelProfile.server = server;
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
+
+        nock(modelProfile.server)
+          .delete(`/api/v1/packages/${packageName}`)
+          .reply(404, errMsg);
+
+        let err: any = null;
+        try {
+          await packages.delete(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err).to.contain(errMsg);
+      });
+
+      it('should fail if a non code based error triggers', async () => {
+        const errMsg = 'Unkown error';
+
+        modelProfile.server = server;
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
+
+        nock(modelProfile.server)
+          .delete(`/api/v1/packages/${packageName}`)
+          .replyWithError(errMsg);
+
+        let err: any = null;
+        try {
+          await packages.delete(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err.toString()).to.contain(errMsg);
+      });
+
+      it('should fail if a server has not been set', async () => {
+        const errMessage = 'Please set a server';
+
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
+
+        let err: any = null;
+        try {
+          await packages.delete(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err).to.eq(errMessage);
+      });
+
+      it('should fail if the user is not logged in', async () => {
+        const errMessage = 'You must be logged in to do that';
+
+        modelProfile.server = server;
+        await modelProfile.save();
+
+        let err: any = null;
+        try {
+          await packages.delete(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err).to.eq(errMessage);
+      });
+
+      it('should fail if a header token is not provided', async () => {
+        modelProfile.server = 'http://uvpm.com';
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
+
+        nock(modelProfile.server)
+          .matchHeader('Authorization', `Bearer ${modelProfile.token}`)
+          .delete(`/api/v1/packages/${packageName}`)
+          .reply(200);
+
+        const result = await packages.delete(packageName);
+
+        // Make sure nock was called at the assumed end point
+        expect(result).to.not.be.ok;
+      });
     });
   });
 });
