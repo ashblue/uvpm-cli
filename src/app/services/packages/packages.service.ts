@@ -1,5 +1,5 @@
 import { IPackage } from '../../shared/interfaces/packages/i-package';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { ModelProfile } from '../../models/profile/profile.model';
 
 export class ServicePackages {
@@ -37,9 +37,37 @@ export class ServicePackages {
     });
   }
 
-  // public get (name: string): Promise<IPackage> {
-  // }
-  //
+  public get (name: string): Promise<IPackage> {
+    return new Promise<IPackage>((resolve, reject) => {
+      if (!this.profile.isServer) {
+        reject('Please set a server');
+        return;
+      }
+
+      let httpConfig: AxiosRequestConfig = {};
+      if (this.profile.isLoggedIn) {
+        httpConfig = {
+          headers: {
+            Authorization: `Bearer ${this.profile.token}`,
+          },
+        };
+      }
+
+      axios.get(`${this.profile.server}/api/v1/packages/${name}`, httpConfig)
+        .then((response) => {
+          resolve(response.data as IPackage);
+        })
+        .catch((err) => {
+          if (err && err.response && err.response.data) {
+            reject(err.response.data);
+            return;
+          }
+
+          reject(err);
+        });
+    });
+  }
+
   // public delete (name: string): Promise<void> {
   // }
 }

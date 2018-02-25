@@ -46,6 +46,8 @@ export class CmdLogin extends CmdBase {
       return this.inquirer.prompt(this.questions)
         .then((answers) => {
           const loginRequest = answers as ILoginRequest;
+
+          // @TODO Wrap axios authentication commands into a service
           return axios.post(loginUrl, loginRequest);
         })
         .then((response) => {

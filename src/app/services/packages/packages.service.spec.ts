@@ -4,7 +4,6 @@ import { IPackage } from '../../shared/interfaces/packages/i-package';
 import { ModelProfile } from '../../models/profile/profile.model';
 import { ServiceDatabase } from '../database/database.service';
 import nock = require('nock');
-import { async } from 'rxjs/scheduler/async';
 
 describe('ServicePackage', () => {
   it('should initialize', () => {
@@ -14,6 +13,7 @@ describe('ServicePackage', () => {
   });
 
   describe('when initialized', () => {
+    const server = 'http://uvpm.com';
     let packages: ServicePackages;
     let modelProfile: ModelProfile;
     let serviceDatabase: ServiceDatabase;
@@ -165,17 +165,153 @@ describe('ServicePackage', () => {
     });
 
     describe('get', () => {
-      xit('should retrieve the package by name');
+      const packageName = 'my-package';
+      const packageExample: IPackage = {
+        name: 'my-package',
+        author: {
+          name: 'Ash Blue',
+          email: 'ash@blueashes.com',
+        },
+        versions: [
+          {
+            name: '1.0.0',
+            archive: 'http://uvpm.com',
+          },
+        ],
+      };
 
-      xit('should fail if a server has not been set');
+      it('should retrieve the package by name', async () => {
+        modelProfile.server = server;
+        await modelProfile.save();
+
+        nock(server)
+          .get(`/api/v1/packages/${packageName}`)
+          .reply(200, packageExample);
+
+        const result = await packages.get(packageName);
+
+        expect(result).to.be.ok;
+        expect(result.name).to.eq(packageExample.name);
+        expect(result.versions[0].name).to.eq(packageExample.versions[0].name);
+        expect(result.versions[0].archive).to.eq(packageExample.versions[0].archive);
+      });
+
+      it('should fail if the server returns an error code', async () => {
+        const errMessage = 'Failed to get a package';
+
+        modelProfile.server = 'http://uvpm.com';
+        await modelProfile.save();
+
+        nock(server)
+          .get(`/api/v1/packages/${packageName}`)
+          .reply(500, errMessage);
+
+        let err: any = null;
+        try {
+          await packages.get(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err).to.eq(errMessage);
+      });
+
+      it('should fail if a non code based error triggers', async () => {
+        const errMessage = 'Failed to get a package';
+
+        modelProfile.server = 'http://uvpm.com';
+        await modelProfile.save();
+
+        nock(server)
+          .get(`/api/v1/packages/${packageName}`)
+          .replyWithError(errMessage);
+
+        let err: any = null;
+        try {
+          await packages.get(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err.toString()).to.contain(errMessage);
+      });
+
+      it('should fail if a server has not been set', async () => {
+        const errMessage = 'Please set a server';
+
+        let err: any = null;
+        try {
+          await packages.get(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        // Make sure nock was called at the assumed end point
+        expect(err).to.be.ok;
+        expect(err).to.eq(errMessage);
+      });
+
+      it('should pass in an authorization token if logged in', async () => {
+        const successMessage = 'Success';
+
+        modelProfile.server = 'http://uvpm.com';
+        modelProfile.email = 'ash@blueashes.com';
+        modelProfile.token = '12345';
+        await modelProfile.save();
+
+        nock(modelProfile.server)
+          .matchHeader('Authorization', `Bearer ${modelProfile.token}`)
+          .get(`/api/v1/packages/${packageName}`)
+          .reply(200, 'Success');
+
+        const result = await packages.get(packageName);
+
+        // Make sure nock was called at the assumed end point
+        expect(result).to.be.ok;
+        expect(result).to.eq(successMessage);
+      });
+
+      it('should skip the authorization header token if logged out', async () => {
+        const successMessage = 'Success';
+
+        modelProfile.server = 'http://uvpm.com';
+        await modelProfile.save();
+
+        let authHeader: any = null;
+        const n = nock(modelProfile.server)
+          .get(`/api/v1/packages/${packageName}`)
+          .reply(200, successMessage);
+
+        n.on('request', (req) => {
+          authHeader = req.headers.authorization;
+        });
+
+        const result = await packages.get(packageName);
+
+        // Make sure nock was called at the assumed end point
+        expect(result).to.be.ok;
+        expect(result).to.eq(successMessage);
+        expect(authHeader).to.not.eq(null);
+        expect(authHeader).to.not.be.ok;
+      });
     });
 
     describe('delete', () => {
-      it('should delete the package by name');
+      xit('should delete the package by name');
+
+      xit('should fail if the server returns an error code');
+
+      xit('should fail if a non code based error triggers');
 
       xit('should fail if a server has not been set');
 
-      xit('should fail if the token has not been set');
+      xit('should fail if the user is not logged in');
+
+      xit('should fail if a header token is not provided');
     });
   });
 });
