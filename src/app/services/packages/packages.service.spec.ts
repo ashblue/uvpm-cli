@@ -28,8 +28,6 @@ describe('ServicePackage', () => {
       packages = new ServicePackages(modelProfile);
     });
 
-    xit('should have a reference to ServicePackageVersions');
-
     describe('create', () => {
       const packageData: IPackage = {
         name: 'my-package',
@@ -53,7 +51,6 @@ describe('ServicePackage', () => {
 
         const result = await packages.create(packageData);
 
-        // Make sure nock was called at the assumed end point
         expect(result).to.be.ok;
         expect(result.name).to.eq(packageData.name);
         expect(result.versions[0].name).to.eq(packageData.versions[0].name);
