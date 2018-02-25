@@ -220,6 +220,81 @@ describe('ServicePackageVersions', () => {
   });
 
   describe('delete', () => {
-    xit('should delete the package version');
+    it('should delete the package version', async () => {
+      modelProfile.server = server;
+      modelProfile.email = 'ash@blueashes.com';
+      modelProfile.token = '12345';
+      await modelProfile.save();
+
+      nock(modelProfile.server)
+        .delete(`/api/v1/packages/${packageName}/versions/${versionExample.name}`)
+        .reply(200, versionExample);
+
+      const result = await service.delete(packageName, versionExample.name);
+
+      expect(result).to.not.be.ok;
+    });
+
+    it('should fail if the server returns an error code', async () => {
+      const errMsg = 'Internal server error';
+
+      modelProfile.server = server;
+      modelProfile.email = 'ash@blueashes.com';
+      modelProfile.token = '12345';
+      await modelProfile.save();
+
+      nock(modelProfile.server)
+        .delete(`/api/v1/packages/${packageName}/versions/${versionExample.name}`)
+        .reply(500, errMsg);
+
+      let err: any = null;
+      try {
+        await service.delete(packageName, versionExample.name);
+      } catch (e) {
+        err = e;
+      }
+
+      expect(err).to.be.ok;
+      expect(err).to.eq(errMsg);
+    });
+
+    it('should fail if a non code based error triggers', async () => {
+      const errMsg = 'Internal server error';
+
+      modelProfile.server = server;
+      modelProfile.email = 'ash@blueashes.com';
+      modelProfile.token = '12345';
+      await modelProfile.save();
+
+      nock(modelProfile.server)
+        .delete(`/api/v1/packages/${packageName}/versions/${versionExample.name}`)
+        .replyWithError(errMsg);
+
+      let err: any = null;
+      try {
+        await service.delete(packageName, versionExample.name);
+      } catch (e) {
+        err = e;
+      }
+
+      expect(err).to.be.ok;
+      expect(err.toString()).to.contain(errMsg);
+    });
+
+    it('should fail if a header token is not provided', async () => {
+      modelProfile.server = server;
+      modelProfile.email = 'ash@blueashes.com';
+      modelProfile.token = '12345';
+      await modelProfile.save();
+
+      nock(modelProfile.server)
+        .matchHeader('Authorization', `Bearer ${modelProfile.token}`)
+        .delete(`/api/v1/packages/${packageName}/versions/${versionExample.name}`)
+        .reply(200, versionExample);
+
+      const result = await service.delete(packageName, versionExample.name);
+
+      expect(result).to.not.be.ok;
+    });
   });
 });

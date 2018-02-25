@@ -53,7 +53,24 @@ export class ServicePackageVersions {
     });
   }
 
-  // public delete (packageName: string, version: string): Promise<void> {
-  //
-  // }
+  public delete (packageName: string, version: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      axios.delete(`${this.profile.server}/api/v1/packages/${packageName}/versions/${version}`, {
+        headers: {
+          Authorization: `Bearer ${this.profile.token}`,
+        },
+      })
+        .then(() => {
+          resolve();
+        })
+        .catch((err) => {
+          if (err && err.response && err.response.data) {
+            reject(err.response.data);
+            return;
+          }
+
+          reject(err);
+        });
+    });
+  }
 }
