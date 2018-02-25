@@ -290,7 +290,6 @@ describe('ServicePackage', () => {
 
         const result = await packages.get(packageName);
 
-        // Make sure nock was called at the assumed end point
         expect(result).to.be.ok;
         expect(result).to.eq(successMessage);
         expect(authHeader).to.not.eq(null);
