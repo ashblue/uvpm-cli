@@ -8,8 +8,17 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 const expect = chai.expect;
 
 describe('CmdServer', () => {
+  let cmd: CmdServer;
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+    cmd = new CmdServer(db, profile, new Command(), inquirer);
+  });
+
   it('should initialize', () => {
-    const cmd = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
@@ -17,16 +26,15 @@ describe('CmdServer', () => {
     describe('server', () => {
       it('should print the current server', async () => {
         const url = 'http://asdf.com';
-        const cmdServer = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
 
-        await cmdServer.action(url);
-        await cmdServer.action();
+        await cmd.action(url);
+        await cmd.action();
 
-        expect(cmdServer.lastLog).to.contain(`Current server is "${url}"`);
+        expect(cmd.lastLog).to.contain(`Current server is "${url}"`);
       });
 
       it('should display an error if no server has been set', async () => {
-        const cmdInit = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
+        const cmdInit = new CmdServer(db, profile, new Command(), inquirer);
 
         await cmdInit.action();
 
@@ -37,26 +45,20 @@ describe('CmdServer', () => {
     describe('server [url]', () => {
       it('should write to the user profile with the server"', async () => {
         const url = 'http://asdf.com';
-        const db = new ServiceDatabase();
-        const cmdServer = new CmdServer(db, new Command(), inquirer);
-        const profile = new ModelProfile(db);
 
-        await cmdServer.action(url);
+        await cmd.action(url);
         await profile.load();
 
         expect(profile.server).to.eq(url);
-        expect(cmdServer.lastLog).to.contain(`Server set to "${url}"`);
+        expect(cmd.lastLog).to.contain(`Server set to "${url}"`);
       });
 
       it('should overwrite the previous url if run again', async () => {
         const url = 'http://asdf.com';
         const newUrl = 'http://fdsa.com';
-        const db = new ServiceDatabase();
-        const cmdServer = new CmdServer(db, new Command(), inquirer);
-        const profile = new ModelProfile(db);
 
-        await cmdServer.action(url);
-        await cmdServer.action(newUrl);
+        await cmd.action(url);
+        await cmd.action(newUrl);
         await profile.load();
 
         expect(profile.server).to.eq(newUrl);

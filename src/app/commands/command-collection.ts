@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { CmdHelloWord } from './hello-world/hello-world.cmd';
 import { CmdBase } from './base/base.cmd';
 
 import pjson = require('pjson');
@@ -12,11 +11,14 @@ import { CmdLogout } from './authentication/logout/logout.cmd';
 import { CmdWhoami } from './authentication/whoami/whoami.cmd';
 import { CmdVersion } from './publishing/version/version.cmd';
 import { ServiceDatabase } from '../services/database/database.service';
+import { ModelProfile } from '../models/profile/profile.model';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
-  private commands: Array<{ new (db: ServiceDatabase, program: Command, inq: inquirer.Inquirer): CmdBase }> = [
-    CmdHelloWord,
+
+  private commands: Array<{
+    new (db: ServiceDatabase, profile: ModelProfile, program: Command, inq: inquirer.Inquirer): CmdBase,
+  }> = [
     CmdInit,
     CmdServer,
     CmdLogin,
@@ -25,11 +27,16 @@ export class CommandCollection {
     CmdVersion,
   ];
 
-  constructor (private db: ServiceDatabase, private program: Command, private inq: inquirer.Inquirer) {
+  constructor (
+    private db: ServiceDatabase,
+    private profile: ModelProfile,
+    private program: Command,
+    private inq: inquirer.Inquirer,
+  ) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
-      this.commandInstances.push(new c(this.db, program, this.inq));
+      this.commandInstances.push(new c(this.db, this.profile, program, this.inq));
     });
   }
 

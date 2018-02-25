@@ -12,14 +12,22 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 const expect = chai.expect;
 
 describe('CmdLogin', () => {
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+  });
+
   it('should initialize', () => {
-    const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer() as any);
+    const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer() as any);
     expect(cmd).to.be.ok;
   });
 
   describe('when initialized', () => {
     it('should fail if a server is not set', async () => {
-      const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer() as any);
+      const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer() as any);
       await cmd.action();
 
       expect(cmd.lastLogErr).to.contain('Please run "uvpm server [URL]" to set an end point');
@@ -31,9 +39,8 @@ describe('CmdLogin', () => {
         password: 'Asdf1234',
       };
 
-      const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer(login) as any);
+      const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer(login) as any);
 
-      const profile = new ModelProfile(new ServiceDatabase());
       profile.server = 'http://testapp.com';
       await profile.save();
 
@@ -69,9 +76,8 @@ describe('CmdLogin', () => {
         password: 'Asdf1234',
       };
 
-      const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer(login) as any);
+      const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer(login) as any);
 
-      const profile = new ModelProfile(new ServiceDatabase());
       profile.server = 'http://testapp.com';
       await profile.save();
 
@@ -97,9 +103,8 @@ describe('CmdLogin', () => {
         password: 'Asdf1234',
       };
 
-      const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer(login) as any);
+      const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer(login) as any);
 
-      const profile = new ModelProfile(new ServiceDatabase());
       profile.server = 'http://testapp.com';
       await profile.save();
 
@@ -123,9 +128,8 @@ describe('CmdLogin', () => {
         password: 'Asdf1234',
       };
 
-      const cmd = new CmdLogin(new ServiceDatabase(), new Command(), new StubInquirer(login) as any);
+      const cmd = new CmdLogin(db, profile, new Command(), new StubInquirer(login) as any);
 
-      const profile = new ModelProfile(new ServiceDatabase());
       profile.server = 'http://testapp.com';
       await profile.save();
 

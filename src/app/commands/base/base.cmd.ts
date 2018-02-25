@@ -3,6 +3,7 @@ import { config } from '../../shared/config';
 import { Inquirer } from 'inquirer';
 import { ICmdOption } from './i-cmd-option';
 import { ServiceDatabase } from '../../services/database/database.service';
+import { ModelProfile } from '../../models/profile/profile.model';
 
 export abstract class CmdBase {
   public abstract get name (): string;
@@ -33,8 +34,25 @@ export abstract class CmdBase {
     return [];
   }
 
+  /**
+   * Immediately fail if the user is not logged in
+   * @returns {boolean}
+   */
+  protected get requireLogin (): boolean {
+    return false;
+  }
+
+  /**
+   * Immediately fail if a server has not been set
+   * @returns {boolean}
+   */
+  protected get requireServer (): boolean {
+    return false;
+  }
+
   constructor (
     protected db: ServiceDatabase,
+    protected profile: ModelProfile,
     protected program: Command,
     protected inquirer: Inquirer,
   ) {
@@ -42,7 +60,19 @@ export abstract class CmdBase {
   }
 
   public action (argA?: string): Promise<void> {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(async (resolve) => {
+      if (this.requireServer && !this.profile.isServer) {
+        this.logErr('Please set a server before using this action by running "uvpm server [URL]"');
+        resolve();
+        return;
+      }
+
+      if (this.requireLogin && !this.profile.isLoggedIn) {
+        this.logErr('Please login before using this action by running "uvpm login"');
+        resolve();
+        return;
+      }
+
       this.onAction(argA)
         .then(() => {
           resolve();

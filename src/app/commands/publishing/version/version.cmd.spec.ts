@@ -7,17 +7,26 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { SinonStub } from 'sinon';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelProfile } from '../../../models/profile/profile.model';
 
 const expect = chai.expect;
 
 describe('CmdVersion', () => {
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+  });
+
   it('should initialize', () => {
-    const cmd = new CmdVersion(new ServiceDatabase(), new Command(), inquirer);
+    const cmd = new CmdVersion(db, profile, new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
   it('should fail if there is no uvpm.json', async () => {
-    const cmd = new CmdVersion(new ServiceDatabase(), new Command(), inquirer);
+    const cmd = new CmdVersion(db, profile, new Command(), inquirer);
     const errMsg = `Please create a uvpm.json file via "uvpm init" to run version commands`;
     await cmd.action();
 
@@ -25,7 +34,6 @@ describe('CmdVersion', () => {
   });
 
   describe('when initialized with uvpm.json and running command', () => {
-    let db: ServiceDatabase;
     let cmdVersion: CmdVersion;
     let stubUvpmConfig: SinonStub;
 
@@ -34,7 +42,6 @@ describe('CmdVersion', () => {
     let stubUvpmConfigModelSave: SinonStub;
 
     beforeEach(() => {
-      db = new ServiceDatabase();
       uvpmConfigModel = new ModelUvpmConfig();
       stubUvpmConfigModelLoad = sinon.stub(uvpmConfigModel, 'load')
         .callsFake(() => {
@@ -45,7 +52,7 @@ describe('CmdVersion', () => {
           return new Promise((resolve) => resolve());
         });
 
-      cmdVersion = new CmdVersion(db, new Command(), inquirer);
+      cmdVersion = new CmdVersion(db, profile, new Command(), inquirer);
       stubUvpmConfig = sinon.stub(cmdVersion, 'uvpmConfig')
         .get(() => {
           return uvpmConfigModel;

@@ -10,9 +10,9 @@ describe('CtrlHelloWorld', () => {
   });
 
   describe('init', () => {
-    it('should run', () => {
+    it('should run', async () => {
       const inst = new App();
-      inst.init();
+      await inst.init();
     });
   });
 });

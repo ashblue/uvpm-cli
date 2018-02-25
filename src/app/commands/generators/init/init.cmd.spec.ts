@@ -8,12 +8,21 @@ import * as fs from 'fs';
 import * as chai from 'chai';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelProfile } from '../../../models/profile/profile.model';
 
 const expect = chai.expect;
 
 describe('CmdInit', () => {
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+  });
+
   it('should initialize', () => {
-    const cmdInit = new CmdInit(new ServiceDatabase(), new Command(), new StubInquirer() as any);
+    const cmdInit = new CmdInit(db, profile, new Command(), new StubInquirer() as any);
 
     expect(cmdInit).to.be.ok;
   });
@@ -40,7 +49,7 @@ describe('CmdInit', () => {
         license: 'None',
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      const cmdInit = new CmdInit(db, profile, cmd, new StubInquirer(answers) as any);
       expect(cmdInit).to.be.ok;
       await cmdInit.action();
 
@@ -65,7 +74,7 @@ describe('CmdInit', () => {
         license: undefined,
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      const cmdInit = new CmdInit(db, profile, cmd, new StubInquirer(answers) as any);
       expect(cmdInit).to.be.ok;
       await cmdInit.action();
 
@@ -92,7 +101,7 @@ describe('CmdInit', () => {
         license: undefined,
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      const cmdInit = new CmdInit(db, profile, cmd, new StubInquirer(answers) as any);
       await cmdInit.action();
       const contents = fs.readFileSync(`./${ModelUvpmConfig.fileName}`);
       const configData = JSON.parse(contents.toString()) as IUvpmConfig;
@@ -105,7 +114,7 @@ describe('CmdInit', () => {
     it('should fail if a uvpm.json file already exists', async () => {
       fs.writeFileSync(`./${ModelUvpmConfig.fileName}`, '{}');
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer({}) as any);
+      const cmdInit = new CmdInit(db, profile, cmd, new StubInquirer({}) as any);
       expect(cmdInit).to.be.ok;
 
       await cmdInit.action();

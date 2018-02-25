@@ -3,12 +3,21 @@ import * as chai from 'chai';
 import * as commander from 'commander';
 import * as inquirer from 'inquirer';
 import { ServiceDatabase } from '../services/database/database.service';
+import { ModelProfile } from '../models/profile/profile.model';
 
 const expect = chai.expect;
 
 describe('CommandCollection', () => {
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+  });
+
   it('should initialize', () => {
-    const col = new CommandCollection(new ServiceDatabase(), new commander.Command(), inquirer);
+    const col = new CommandCollection(db, profile, new commander.Command(), inquirer);
 
     expect(col).to.be.ok;
   });
@@ -17,7 +26,7 @@ describe('CommandCollection', () => {
     let col: CommandCollection;
 
     beforeEach(() => {
-      col = new CommandCollection(new ServiceDatabase(), new commander.Command(), inquirer);
+      col = new CommandCollection(db, profile, new commander.Command(), inquirer);
     });
 
     describe('generators', () => {
