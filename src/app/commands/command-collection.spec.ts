@@ -4,31 +4,30 @@ import * as commander from 'commander';
 import * as inquirer from 'inquirer';
 import { ServiceDatabase } from '../services/database/database.service';
 import { ModelProfile } from '../models/profile/profile.model';
+import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
 describe('CommandCollection', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
+  let config: ModelUvpmConfig;
+
+  let col: CommandCollection;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
+    config = new ModelUvpmConfig();
+
+    col = new CommandCollection(db, profile, config, new commander.Command(), inquirer);
   });
 
   it('should initialize', () => {
-    const col = new CommandCollection(db, profile, new commander.Command(), inquirer);
-
     expect(col).to.be.ok;
   });
 
   describe('when initialized', () => {
-    let col: CommandCollection;
-
-    beforeEach(() => {
-      col = new CommandCollection(db, profile, new commander.Command(), inquirer);
-    });
-
     describe('generators', () => {
       it('should inject an init command', () => {
         const match = col.commandInstances.find((i) => {

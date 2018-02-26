@@ -8,21 +8,24 @@ import * as nock from 'nock';
 import { ILoginResponse } from './i-login-response';
 import { IUvpmError } from '../../../shared/interfaces/uvpm/i-uvpm-error';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
 describe('CmdLogin', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
+  let config: ModelUvpmConfig;
   let stubInquirer: StubInquirer;
   let cmd: CmdLogin;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
+    config = new ModelUvpmConfig();
     stubInquirer = new StubInquirer();
 
-    cmd = new CmdLogin(db, profile, new Command(), stubInquirer as any);
+    cmd = new CmdLogin(db, profile, config, new Command(), stubInquirer as any);
   });
 
   it('should initialize', () => {

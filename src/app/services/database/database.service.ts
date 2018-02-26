@@ -1,4 +1,4 @@
-import { config } from '../../shared/config';
+import { appConfig } from '../../shared/config';
 import Database = PouchDB.Database;
 import * as fs from 'fs';
 
@@ -20,12 +20,12 @@ export class ServiceDatabase {
   }
 
   public static get databasePath () {
-    return `${config.folderRoot}/${this.dbId}`;
+    return `${appConfig.folderRoot}/${this.dbId}`;
   }
 
   private static get dbId () {
     /* istanbul ignore else */
-    if (config.isEnvTest) {
+    if (appConfig.isEnvTest) {
       return databaseConfig.DB_FOLDER_TEST;
     }
 

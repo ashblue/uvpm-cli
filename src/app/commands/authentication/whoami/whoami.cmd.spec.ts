@@ -4,18 +4,22 @@ import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdWhoami } from './whoami.cmd';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
 describe('CmdWhoami', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
+  let config: ModelUvpmConfig;
   let cmd: CmdWhoami;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    cmd = new CmdWhoami(db, profile, new Command(), inquirer);
+    config = new ModelUvpmConfig();
+
+    cmd = new CmdWhoami(db, profile, config, new Command(), inquirer);
   });
 
   it('should initialize', () => {

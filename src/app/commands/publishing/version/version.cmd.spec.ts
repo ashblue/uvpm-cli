@@ -14,12 +14,22 @@ const expect = chai.expect;
 describe('CmdVersion', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
+  let config: ModelUvpmConfig;
   let cmd: CmdVersion;
+
+  let stubRequireUvpmJson: SinonStub;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    cmd = new CmdVersion(db, profile, new Command(), inquirer);
+    config = new ModelUvpmConfig();
+
+    stubRequireUvpmJson = sinon.stub(CmdVersion.prototype, 'requireUvpmJson' as any);
+    stubRequireUvpmJson.get(() => {
+      return false;
+    });
+
+    cmd = new CmdVersion(db, profile, config, new Command(), inquirer);
   });
 
   it('should initialize', () => {
@@ -27,10 +37,14 @@ describe('CmdVersion', () => {
   });
 
   it('should fail if there is no uvpm.json', async () => {
-    const errMsg = `Please create a uvpm.json file via "uvpm init" to run version commands`;
+    const errMsg = `Please create a uvpm.json file via`;
+    stubRequireUvpmJson.get(() => {
+      return true;
+    });
+
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.eq(errMsg);
+    expect(cmd.lastLogErr).to.contain(errMsg);
   });
 
   describe('when initialized with uvpm.json and running command', () => {

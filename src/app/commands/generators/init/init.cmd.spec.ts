@@ -15,6 +15,7 @@ const expect = chai.expect;
 describe('CmdInit', () => {
   let cmdInit: CmdInit;
   let db: ServiceDatabase;
+  let config: ModelUvpmConfig;
   let stubInquirer: StubInquirer;
   let profile: ModelProfile;
 
@@ -22,7 +23,9 @@ describe('CmdInit', () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     stubInquirer = new StubInquirer();
-    cmdInit = new CmdInit(db, profile, new Command(), stubInquirer as any);
+    config = new ModelUvpmConfig();
+
+    cmdInit = new CmdInit(db, profile, config, new Command(), stubInquirer as any);
   });
 
   it('should initialize', () => {

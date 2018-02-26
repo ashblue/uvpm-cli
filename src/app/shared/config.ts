@@ -36,4 +36,4 @@ class Config {
   }
 }
 
-export const config = new Config();
+export const appConfig = new Config();

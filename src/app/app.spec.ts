@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import { App } from './app';
 const expect = chai.expect;
 
-describe('CtrlHelloWorld', () => {
+describe('App', () => {
   it('should initialize', () => {
     const inst = new App();
 

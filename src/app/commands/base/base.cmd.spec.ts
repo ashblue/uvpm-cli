@@ -5,10 +5,12 @@ import * as commander from 'commander';
 import * as inquirer from 'inquirer';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
+import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
 
 describe('CmdBase', () => {
   let cmd: CmdExample;
   let db: ServiceDatabase;
+  let config: ModelUvpmConfig;
   let profile: ModelProfile;
 
   class CmdExample extends CmdBase {
@@ -28,7 +30,9 @@ describe('CmdBase', () => {
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    cmd = new CmdExample(db, profile, new commander.Command(), inquirer);
+    config = new ModelUvpmConfig();
+
+    cmd = new CmdExample(db, profile, config, new commander.Command(), inquirer);
   });
 
   it('should initialize', () => {

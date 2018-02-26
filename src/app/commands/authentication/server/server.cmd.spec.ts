@@ -4,6 +4,7 @@ import { CmdServer } from './server.cmd';
 import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
@@ -11,11 +12,14 @@ describe('CmdServer', () => {
   let cmd: CmdServer;
   let db: ServiceDatabase;
   let profile: ModelProfile;
+  let config: ModelUvpmConfig;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    cmd = new CmdServer(db, profile, new Command(), inquirer);
+    config = new ModelUvpmConfig();
+
+    cmd = new CmdServer(db, profile, config, new Command(), inquirer);
   });
 
   it('should initialize', () => {
@@ -34,11 +38,9 @@ describe('CmdServer', () => {
       });
 
       it('should display an error if no server has been set', async () => {
-        const cmdInit = new CmdServer(db, profile, new Command(), inquirer);
+        await cmd.action();
 
-        await cmdInit.action();
-
-        expect(cmdInit.lastLogErr).to.contain('Please set a server');
+        expect(cmd.lastLogErr).to.contain('Please set a server');
       });
     });
 

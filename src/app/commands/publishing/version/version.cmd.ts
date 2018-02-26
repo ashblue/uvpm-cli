@@ -21,6 +21,11 @@ export class CmdVersion extends CmdBase {
       Versioning is based upon the Semantic Versioning specification. See semver.org to learn more.`;
   }
 
+  // istanbul ignore next: Stubbed during testing
+  protected get requireUvpmJson (): boolean {
+    return true;
+  }
+
   protected onAction (newVersion?: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const uvpmConfig = this.uvpmConfig;
@@ -39,9 +44,6 @@ export class CmdVersion extends CmdBase {
               resolve();
             })
             .catch(reject);
-        })
-        .catch( () => {
-          reject('Please create a uvpm.json file via "uvpm init" to run version commands');
         });
     });
   }

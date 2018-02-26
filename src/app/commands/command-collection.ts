@@ -12,12 +12,17 @@ import { CmdWhoami } from './authentication/whoami/whoami.cmd';
 import { CmdVersion } from './publishing/version/version.cmd';
 import { ServiceDatabase } from '../services/database/database.service';
 import { ModelProfile } from '../models/profile/profile.model';
+import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
 
   private commands: Array<{
-    new (db: ServiceDatabase, profile: ModelProfile, program: Command, inq: inquirer.Inquirer): CmdBase,
+    new (db: ServiceDatabase,
+         profile: ModelProfile,
+         config: ModelUvpmConfig,
+         program: Command,
+         inq: inquirer.Inquirer): CmdBase,
   }> = [
     CmdInit,
     CmdServer,
@@ -30,13 +35,14 @@ export class CommandCollection {
   constructor (
     private db: ServiceDatabase,
     private profile: ModelProfile,
+    private config: ModelUvpmConfig,
     private program: Command,
     private inq: inquirer.Inquirer,
   ) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
-      this.commandInstances.push(new c(this.db, this.profile, program, this.inq));
+      this.commandInstances.push(new c(this.db, this.profile, this.config, program, this.inq));
     });
   }
 

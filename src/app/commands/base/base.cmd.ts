@@ -1,9 +1,10 @@
 import { Command } from 'commander';
-import { config } from '../../shared/config';
+import { appConfig } from '../../shared/config';
 import { Inquirer } from 'inquirer';
 import { ICmdOption } from './i-cmd-option';
 import { ServiceDatabase } from '../../services/database/database.service';
 import { ModelProfile } from '../../models/profile/profile.model';
+import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
 
 export abstract class CmdBase {
   public abstract get name (): string;
@@ -50,9 +51,14 @@ export abstract class CmdBase {
     return false;
   }
 
+  protected get requireUvpmJson (): boolean {
+    return false;
+  }
+
   constructor (
     protected db: ServiceDatabase,
     protected profile: ModelProfile,
+    protected config: ModelUvpmConfig,
     protected program: Command,
     protected inquirer: Inquirer,
   ) {
@@ -61,6 +67,11 @@ export abstract class CmdBase {
 
   public action (argA?: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
+      if (this.requireUvpmJson && !this.config.isFile) {
+        this.logErr(
+          'Please create a uvpm.json file via "uvpm init" or run this command in a folder with a uvpm.json file');
+      }
+
       if (this.requireServer && !this.profile.isServer) {
         this.logErr('Please set a server before using this action by running "uvpm server [URL]"');
         resolve();
@@ -92,7 +103,7 @@ export abstract class CmdBase {
 
   /* istanbul ignore next: floods the test runner with logs */
   protected logErr (text: string) {
-    if (config.isEnvTest) {
+    if (appConfig.isEnvTest) {
       this.logErrHistory.push(text);
       return;
     }
@@ -102,7 +113,7 @@ export abstract class CmdBase {
 
   /* istanbul ignore next: floods the test runner with logs */
   protected log (text: string) {
-    if (config.isEnvTest) {
+    if (appConfig.isEnvTest) {
       this.logHistory.push(text);
       return;
     }
@@ -112,7 +123,7 @@ export abstract class CmdBase {
 
   private complete () {
     /* istanbul ignore if: crashes test runner */
-    if (!config.isEnvTest) {
+    if (!appConfig.isEnvTest) {
       process.exit();
     }
   }

@@ -88,5 +88,17 @@ describe('ModelUvpmConfig', () => {
 
       await m.delete();
     });
+
+    it('should fail silently if there is no config file', async () => {
+      const stub = sinon.stub(ModelUvpmConfig.prototype, 'isFile');
+      stub.get(() => {
+        return true;
+      });
+
+      const m = new ModelUvpmConfig();
+      await m.load();
+
+      stub.restore();
+    });
   });
 });

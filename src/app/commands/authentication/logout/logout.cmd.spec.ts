@@ -4,6 +4,7 @@ import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdLogout } from './logout.cmd';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 
 const expect = chai.expect;
 
@@ -11,11 +12,14 @@ describe('CmdLogout', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
   let cmd: CmdLogout;
+  let config: ModelUvpmConfig;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    cmd = new CmdLogout(db, profile, new Command(), inquirer);
+    config = new ModelUvpmConfig();
+
+    cmd = new CmdLogout(db, profile, config, new Command(), inquirer);
   });
 
   it('should initialize', () => {
