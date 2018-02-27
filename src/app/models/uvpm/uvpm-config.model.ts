@@ -77,13 +77,14 @@ export class ModelUvpmConfig implements IUvpmConfig {
 
   public load (): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      // Silently pass through if not uvpm.json file exists
+      // Silently pass through if no uvpm.json file exists
       if (!this.isFile) {
         resolve();
         return;
       }
 
       fs.readFile(ModelUvpmConfig.fileName, (err, contents) => {
+        // istanbul ignore if: Should never fire, but just in-case
         if (err) {
           reject(err);
           return;

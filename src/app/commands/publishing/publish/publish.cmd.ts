@@ -3,7 +3,11 @@ import { ncp } from 'ncp';
 import * as glob from 'glob';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
+import * as archiver from 'archiver';
 
+/**
+ * @TODO Move file helper methods onto a helper class
+ */
 export class CmdPublish extends CmdBase {
   get name (): string {
     return 'publish';
@@ -19,6 +23,36 @@ export class CmdPublish extends CmdBase {
 
   protected get requireServer (): boolean {
     return true;
+  }
+
+  public createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const output = fs.createWriteStream(destinationFile);
+      const archive = archiver('tar', {
+        gzip: true,
+        gzipOptions: {
+          level: 9,
+        },
+        zlib: {
+          level: 9,
+        },
+      });
+
+      output.on('close', () => resolve());
+      archive.on('error', (err) => reject(err));
+      archive.on('warning', (err) => {
+        if (err.code === 'ENOENT') {
+          console.warn(err);
+          return;
+        }
+
+        reject(err);
+      });
+
+      archive.pipe(output);
+      archive.directory(sourceFolder, false);
+      archive.finalize();
+    });
   }
 
   /**
@@ -40,6 +74,11 @@ export class CmdPublish extends CmdBase {
     });
   }
 
+  /**
+   * Clean out a folder based upon the config file settings
+   * @param {string} folder
+   * @returns {Promise<void>}
+   */
   public cleanFolder (folder: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
@@ -92,21 +131,13 @@ export class CmdPublish extends CmdBase {
 
   private getAllFilesRecursively (folder: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
-      glob(`${folder}/**/*`, (err, res) => {
+      glob(`${folder}/**/*`, { dot: true }, (err, res) => {
         if (err) {
           reject(err);
           return;
         }
 
-        // We must attempt to get files with a . since globs won't grab them otherwise
-        glob(`${folder}/**/.*`, (errA, resA) => {
-          if (errA) {
-            reject(err);
-            return;
-          }
-
-          resolve(res.concat(resA));
-        });
+        resolve(res.concat(res));
       });
     });
   }

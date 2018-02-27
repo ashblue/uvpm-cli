@@ -90,12 +90,12 @@ describe('ModelUvpmConfig', () => {
     });
 
     it('should fail silently if there is no config file', async () => {
-      const stub = sinon.stub(ModelUvpmConfig.prototype, 'isFile');
+      const m = new ModelUvpmConfig();
+      const stub = sinon.stub(m, 'isFile');
       stub.get(() => {
-        return true;
+        return false;
       });
 
-      const m = new ModelUvpmConfig();
       await m.load();
 
       stub.restore();

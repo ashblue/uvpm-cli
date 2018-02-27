@@ -12,6 +12,21 @@ import rimraf = require('rimraf');
 import { serviceTmp } from '../../../services/tmp/tmp.service';
 import { unityExampleProjectFiles } from '../../../shared/tests/example-project/unity/unity-example-project-files';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import * as glob from 'glob';
+import * as tar from 'tar';
+
+async function getFiles (destination: string) {
+  return await new Promise<string[]>((resolve, reject) => {
+    glob(`${destination}/**/*`, { dot: true }, (err, res) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(res);
+    });
+  });
+}
 
 describe('CmdPublish', () => {
   let db: ServiceDatabase;
@@ -50,6 +65,10 @@ describe('CmdPublish', () => {
   });
 
   describe('action', () => {
+    it('should run', async () => {
+      await cmd.action();
+    });
+
     xit('should publish an archive file to the server');
 
     xit('should fail if the user is not logged in');
@@ -98,6 +117,8 @@ describe('CmdPublish', () => {
 
       expect(fs.existsSync(`${destination}/uvpm.json`)).to.be.ok;
     });
+
+    xit('should not copy the git directory over');
   });
 
   describe('cleanFolder', () => {
@@ -118,8 +139,48 @@ describe('CmdPublish', () => {
   });
 
   describe('createArchive', () => {
-    xit('should turn the passed folder into an archive at the destination');
+    it('should turn the passed folder into an archive at the destination', async () => {
+      const archiveSource = `${destination}`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
 
-    xit('should have the same files and folders when unarchived');
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+      await cmd.createArchive(archiveSource, archiveDestination);
+
+      expect(fs.existsSync(archiveDestination)).to.be.ok;
+    });
+
+    it('should have the same files and folders when unarchived', async () => {
+      const archiveSource = `${destination}`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
+
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+      const copiedFiles = await getFiles(destination);
+      expect(copiedFiles).to.be.ok;
+      expect(copiedFiles.length).to.be.greaterThan(1);
+
+      await cmd.createArchive(archiveSource, archiveDestination);
+
+      // Unzip the archive
+      fs.mkdirSync(unarchiveDestination);
+      await tar.extract({
+        file: archiveDestination,
+        cwd: unarchiveDestination,
+      });
+      const extractedFiles = await getFiles(unarchiveDestination);
+      expect(extractedFiles).to.be.ok;
+
+      copiedFiles.forEach((f) => {
+        const path = f.replace(archiveSource, '');
+        const match = extractedFiles.find((fAlt) => {
+          const cleanPath = fAlt.replace(unarchiveDestination, '');
+          return path === cleanPath;
+        });
+
+        expect(match).to.be.ok;
+      });
+    });
   });
 });
