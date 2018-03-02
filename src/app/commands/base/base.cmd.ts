@@ -70,6 +70,8 @@ export abstract class CmdBase {
       if (this.requireUvpmJson && !this.config.isFile) {
         this.logErr(
           'Please create a uvpm.json file via "uvpm init" or run this command in a folder with a uvpm.json file');
+        resolve();
+        return;
       }
 
       if (this.requireServer && !this.profile.isServer) {

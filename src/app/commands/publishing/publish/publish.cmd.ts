@@ -25,6 +25,10 @@ export class CmdPublish extends CmdBase {
     return true;
   }
 
+  protected get requireUvpmJson (): boolean {
+    return true;
+  }
+
   public createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(destinationFile);
@@ -123,8 +127,10 @@ export class CmdPublish extends CmdBase {
   }
 
   protected onAction (): Promise<void> {
+    console.log('hit higher');
+
     return new Promise<void>(async (resolve) => {
-      await this.copyProject('', '');
+      this.log(`Package ${this.config.name} v${this.config.version} published to ${this.profile.server}`);
       resolve();
     });
   }

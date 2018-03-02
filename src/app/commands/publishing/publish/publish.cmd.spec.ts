@@ -14,6 +14,8 @@ import { unityExampleProjectFiles } from '../../../shared/tests/example-project/
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import * as glob from 'glob';
 import * as tar from 'tar';
+import * as sinon from 'sinon';
+import { SinonStub } from 'sinon';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -39,10 +41,20 @@ describe('CmdPublish', () => {
   let source: string;
   let destination: string;
 
+  let stubIsFile: SinonStub;
+
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
+    profile.server = 'http://uvpm.com';
+    profile.email = 'asdf@asdf.com';
+    profile.token = '34l2j3jkl@34jkkj3';
+
     config = new ModelUvpmConfig();
+    config.name = 'my-project';
+
+    stubIsFile = sinon.stub(config, 'isFile')
+      .get(() => true);
 
     cmd = new CmdPublish(db, profile, config, new Command(), inquirer);
   });
@@ -57,6 +69,7 @@ describe('CmdPublish', () => {
   });
 
   afterEach(() => {
+    stubIsFile.restore();
     rimraf.sync(tmpProjectFolder.name);
   });
 
@@ -69,15 +82,49 @@ describe('CmdPublish', () => {
       await cmd.action();
     });
 
-    xit('should publish an archive file to the server');
+    it('should print a message on success', async () => {
+      const successMessage = `Package ${config.name} v${config.version} published to ${profile.server}`;
 
-    xit('should fail if the user is not logged in');
+      await cmd.action();
 
-    xit('should fail if a server has not been set');
+      expect(cmd.lastLogErr).to.not.be.ok;
+      expect(cmd.lastLog).to.eq(successMessage);
+    });
 
-    xit('should fail if a uvpm.json file is not present');
+    it('should fail if a uvpm.json file is not present', async () => {
+      const errMsg = 'Please create a uvpm.json file';
 
-    xit('should log an error if the server does not respond');
+      stubIsFile.get(() => false);
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.contain(errMsg);
+    });
+
+    it('should fail if a server has not been set', async () => {
+      const errMsg = 'Please set a server before using this action';
+
+      profile.server = null;
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.contain(errMsg);
+    });
+
+    it('should fail if the user is not logged in', async () => {
+      const errMsg = 'Please login before using this action';
+
+      profile.email = undefined as any;
+      profile.token = undefined as any;
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.contain(errMsg);
+    });
+
+    xit('should publish an archive file to the server for a new package', () => {
+      // Expect the package service to run with appropriate data and return a success message
+      // No error logs detected
+    });
+
+    xit('should log an error if the package service fails');
 
     xit('should use the uvpm.json package name and version to publish');
 
