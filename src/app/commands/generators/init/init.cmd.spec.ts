@@ -9,6 +9,8 @@ import * as chai from 'chai';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelProfile } from '../../../models/profile/profile.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
@@ -18,14 +20,19 @@ describe('CmdInit', () => {
   let config: ModelUvpmConfig;
   let stubInquirer: StubInquirer;
   let profile: ModelProfile;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     stubInquirer = new StubInquirer();
     config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmdInit = new CmdInit(db, profile, config, new Command(), stubInquirer as any);
+    cmdInit = new CmdInit(db, profile, config, new Command(), stubInquirer as any,
+      servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {

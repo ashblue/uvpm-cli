@@ -6,12 +6,16 @@ import * as inquirer from 'inquirer';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
+import { ServicePackageVersions } from '../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../services/packages/packages.service';
 
 describe('CmdBase', () => {
   let cmd: CmdExample;
   let db: ServiceDatabase;
   let config: ModelUvpmConfig;
   let profile: ModelProfile;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   class CmdExample extends CmdBase {
     get name (): string {
@@ -31,8 +35,11 @@ describe('CmdBase', () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdExample(db, profile, config, new commander.Command(), inquirer);
+    cmd = new CmdExample(db, profile, config, new commander.Command(), inquirer,
+      servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {

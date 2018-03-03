@@ -16,6 +16,9 @@ import * as glob from 'glob';
 import * as tar from 'tar';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
+import { IPackage } from '../../../shared/interfaces/packages/i-package';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -30,10 +33,33 @@ async function getFiles (destination: string) {
   });
 }
 
+/**
+ * Turn source code from a project into an archive
+ * @param {string} destination Where the archive is created at
+ * @param {CmdPublish} cmd Class reference for publish command
+ * @param {string} source Location of the project source to archive
+ * @returns {Promise<string>}
+ */
+function getArchiveAsString (destination: string, cmd: CmdPublish, source: string): Promise<string> {
+  return new Promise(async (resolve) => {
+    const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+
+    await cmd.copyProject(source, destination);
+    await cmd.cleanFolder(destination);
+    await cmd.createArchive(destination, archiveDestination);
+
+    const result = fs.readFileSync(archiveDestination);
+
+    resolve(result.toString());
+  });
+}
+
 describe('CmdPublish', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
   let config: ModelUvpmConfig;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
   let cmd: CmdPublish;
 
   let unityProject: ExampleProjectUnity;
@@ -53,10 +79,13 @@ describe('CmdPublish', () => {
     config = new ModelUvpmConfig();
     config.name = 'my-project';
 
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
+
     stubIsFile = sinon.stub(config, 'isFile')
       .get(() => true);
 
-    cmd = new CmdPublish(db, profile, config, new Command(), inquirer);
+    cmd = new CmdPublish(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
   });
 
   beforeEach(async () => {
@@ -78,6 +107,46 @@ describe('CmdPublish', () => {
   });
 
   describe('action', () => {
+    let unityPackageData: IPackage;
+
+    let stubPackageCreate: SinonStub;
+    let stubPackageGet: SinonStub;
+    let stubPackageVersionsAdd: SinonStub;
+
+    beforeEach(async () => {
+      const archive = await getArchiveAsString(destination, cmd, source);
+      unityPackageData = {
+        name: config.name,
+        versions: [
+          {
+            name: config.version.toString(),
+            archive,
+          },
+        ],
+      };
+
+      serviceTmp.clear();
+      serviceTmp.create();
+    });
+
+    beforeEach(() => {
+      stubPackageCreate = sinon.stub(servicePackages, 'create');
+      stubPackageCreate.callsFake(() => new Promise((resolve) => resolve()));
+
+      stubPackageVersionsAdd = sinon.stub(servicePackageVersions, 'add');
+      stubPackageVersionsAdd.callsFake(() => new Promise((resolve) => resolve()));
+
+      stubPackageGet = sinon.stub(servicePackages, 'get');
+      // @ts-ignore
+      stubPackageGet.callsFake(() => new Promise((resolve, reject) => reject()));
+    });
+
+    afterEach(() => {
+      stubPackageCreate.restore();
+      stubPackageVersionsAdd.restore();
+      stubPackageGet.restore();
+    });
+
     it('should run', async () => {
       await cmd.action();
     });
@@ -119,9 +188,73 @@ describe('CmdPublish', () => {
       expect(cmd.lastLogErr).to.contain(errMsg);
     });
 
-    xit('should publish an archive file to the server for a new package', () => {
+    it('should print a message when starting', async () => {
+      await cmd.action();
+
+      expect(cmd.logHistory[0]).to.eq('Packaging file for publishing...');
+    });
+
+    it('should call get the package by name', async () => {
+      await cmd.action();
+
+      expect(stubPackageGet.calledWith(config.name)).to.be.ok;
+    });
+
+    describe('packages create service', () => {
+      it('should be called if the package is new', async () => {
+        await cmd.action();
+
+        expect(stubPackageCreate.called).to.be.ok;
+      });
+
+      xit('should receive the package data with the archive', async () => {
+        await cmd.action();
+
+        const callArgs = stubPackageCreate.args[0][0] as any;
+        expect(callArgs.name).to.eq(config.name);
+        expect(callArgs.versions[0].name).to.eq(config.version.toString());
+        expect(callArgs.versions[0].archive).to.eq(unityPackageData.versions[0].archive);
+      });
+    });
+
+    describe('package versions create service', () => {
+      it('should be called if this package already exists', async () => {
+        stubPackageGet.callsFake(() => new Promise((resolve) => resolve({})));
+
+        await cmd.action();
+
+        expect(stubPackageVersionsAdd.called).to.be.ok;
+      });
+
+      xit('should receive the package data with the archive');
+    });
+
+    xit('should publish an archive file to the server for a new package', async () => {
+      const archive = await getArchiveAsString(destination, cmd, source);
+      const packageCreateData: IPackage = {
+        name: config.name,
+        versions: [
+          {
+            name: config.version.toString(),
+            archive,
+          },
+        ],
+      };
+
+      serviceTmp.clear();
+      serviceTmp.create();
+
+      stubPackageCreate.callsFake(() => new Promise((resolve) => resolve));
+
+      // @TODO Point the publish command project location to the tmp folder (overridable accessor)
       // Expect the package service to run with appropriate data and return a success message
       // No error logs detected
+
+      await cmd.action();
+
+      expect(stubPackageCreate.called).to.be.ok;
+      expect(stubPackageCreate.calledWith(packageCreateData)).to.be.ok;
+      expect(cmd.lastLogErr).to.not.be.ok;
     });
 
     xit('should log an error if the package service fails');
@@ -139,6 +272,8 @@ describe('CmdPublish', () => {
     xit('should fail if the target folder is missing');
 
     xit('should fail if the version is missing');
+
+    xit('should fail if the version name already exists');
   });
 
   describe('copyProject', () => {

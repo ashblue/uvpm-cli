@@ -8,6 +8,8 @@ import { SinonStub } from 'sinon';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelProfile } from '../../../models/profile/profile.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
@@ -16,6 +18,8 @@ describe('CmdVersion', () => {
   let profile: ModelProfile;
   let config: ModelUvpmConfig;
   let cmd: CmdVersion;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   let stubRequireUvpmJson: SinonStub;
 
@@ -23,13 +27,16 @@ describe('CmdVersion', () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
     stubRequireUvpmJson = sinon.stub(CmdVersion.prototype, 'requireUvpmJson' as any);
     stubRequireUvpmJson.get(() => {
       return false;
     });
 
-    cmd = new CmdVersion(db, profile, config, new Command(), inquirer);
+    cmd = new CmdVersion(db, profile, config, new Command(), inquirer,
+      servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {

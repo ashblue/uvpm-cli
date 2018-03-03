@@ -9,6 +9,8 @@ import { ILoginResponse } from './i-login-response';
 import { IUvpmError } from '../../../shared/interfaces/uvpm/i-uvpm-error';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
@@ -18,14 +20,19 @@ describe('CmdLogin', () => {
   let config: ModelUvpmConfig;
   let stubInquirer: StubInquirer;
   let cmd: CmdLogin;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
     stubInquirer = new StubInquirer();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdLogin(db, profile, config, new Command(), stubInquirer as any);
+    cmd = new CmdLogin(db, profile, config, new Command(), stubInquirer as any,
+      servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {

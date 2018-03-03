@@ -5,6 +5,8 @@ import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdWhoami } from './whoami.cmd';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
@@ -13,13 +15,17 @@ describe('CmdWhoami', () => {
   let profile: ModelProfile;
   let config: ModelUvpmConfig;
   let cmd: CmdWhoami;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdWhoami(db, profile, config, new Command(), inquirer);
+    cmd = new CmdWhoami(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {

@@ -5,6 +5,8 @@ import { appConfig } from './shared/config';
 import { ServiceDatabase } from './services/database/database.service';
 import { ModelProfile } from './models/profile/profile.model';
 import { ModelUvpmConfig } from './models/uvpm/uvpm-config.model';
+import { ServicePackages } from './services/packages/packages.service';
+import { ServicePackageVersions } from './services/package-versions/package-versions.service';
 
 export class App {
   public init (): Promise<void> {
@@ -17,7 +19,8 @@ export class App {
       const config = new ModelUvpmConfig();
       await config.load();
 
-      const commandCollection = new CommandCollection(db, profile, config, new Command(), inquirer);
+      const commandCollection = new CommandCollection(db, profile, config, new Command(), inquirer,
+        new ServicePackages(profile), new ServicePackageVersions(profile));
 
       /* istanbul ignore if */
       if (!appConfig.isEnvTest) {

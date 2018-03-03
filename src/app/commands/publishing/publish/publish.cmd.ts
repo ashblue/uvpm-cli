@@ -4,6 +4,7 @@ import * as glob from 'glob';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
 import * as archiver from 'archiver';
+import { IPackage } from '../../../shared/interfaces/packages/i-package';
 
 /**
  * @TODO Move file helper methods onto a helper class
@@ -127,10 +128,34 @@ export class CmdPublish extends CmdBase {
   }
 
   protected onAction (): Promise<void> {
-    console.log('hit higher');
+    this.log('Packaging file for publishing...');
 
     return new Promise<void>(async (resolve) => {
       this.log(`Package ${this.config.name} v${this.config.version} published to ${this.profile.server}`);
+
+      const packagedData: IPackage = {
+        name: this.config.name,
+        versions: [
+          {
+            name: this.config.version.toString(),
+            archive: 'ARCHIVE GOES HERE',
+          },
+        ],
+      };
+
+      let serverPackage: IPackage|null;
+      try {
+        serverPackage = await this.servicePackages.get(this.config.name);
+      } catch {
+        serverPackage = null;
+      }
+
+      if (!serverPackage) {
+        await this.servicePackages.create(packagedData);
+      } else {
+        await this.servicePackageVersions.add(packagedData.name, packagedData.versions[0]);
+      }
+
       resolve();
     });
   }

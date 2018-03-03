@@ -5,6 +5,8 @@ import { ICmdOption } from './i-cmd-option';
 import { ServiceDatabase } from '../../services/database/database.service';
 import { ModelProfile } from '../../models/profile/profile.model';
 import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
+import { ServicePackages } from '../../services/packages/packages.service';
+import { ServicePackageVersions } from '../../services/package-versions/package-versions.service';
 
 export abstract class CmdBase {
   public abstract get name (): string;
@@ -61,6 +63,8 @@ export abstract class CmdBase {
     protected config: ModelUvpmConfig,
     protected program: Command,
     protected inquirer: Inquirer,
+    protected servicePackages: ServicePackages,
+    protected servicePackageVersions: ServicePackageVersions,
   ) {
     this.addCliCommnd();
   }

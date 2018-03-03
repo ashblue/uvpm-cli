@@ -5,6 +5,8 @@ import * as inquirer from 'inquirer';
 import { ServiceDatabase } from '../services/database/database.service';
 import { ModelProfile } from '../models/profile/profile.model';
 import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
+import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
+import { ServicePackages } from '../services/packages/packages.service';
 
 const expect = chai.expect;
 
@@ -14,13 +16,18 @@ describe('CommandCollection', () => {
   let config: ModelUvpmConfig;
 
   let col: CommandCollection;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
 
-    col = new CommandCollection(db, profile, config, new commander.Command(), inquirer);
+    col = new CommandCollection(db, profile, config, new commander.Command(), inquirer,
+      servicePackages, servicePackageVersions);
   });
 
   it('should initialize', () => {
