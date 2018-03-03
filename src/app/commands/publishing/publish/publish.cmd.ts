@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import rimraf = require('rimraf');
 import * as archiver from 'archiver';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
+import { serviceTmp } from '../../../services/tmp/tmp.service';
 
 /**
  * @TODO Move file helper methods onto a helper class
@@ -28,6 +29,10 @@ export class CmdPublish extends CmdBase {
 
   protected get requireUvpmJson (): boolean {
     return true;
+  }
+
+  private get projectFolderPath (): string {
+    return '.';
   }
 
   public createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
@@ -131,14 +136,14 @@ export class CmdPublish extends CmdBase {
     this.log('Packaging file for publishing...');
 
     return new Promise<void>(async (resolve) => {
-      this.log(`Package ${this.config.name} v${this.config.version} published to ${this.profile.server}`);
+      const archive = await this.copyProjectToArchive();
 
       const packagedData: IPackage = {
         name: this.config.name,
         versions: [
           {
             name: this.config.version.toString(),
-            archive: 'ARCHIVE GOES HERE',
+            archive,
           },
         ],
       };
@@ -156,7 +161,23 @@ export class CmdPublish extends CmdBase {
         await this.servicePackageVersions.add(packagedData.name, packagedData.versions[0]);
       }
 
+      this.log(`Package ${this.config.name} v${this.config.version} published to ${this.profile.server}`);
+
       resolve();
+    });
+  }
+
+  private copyProjectToArchive (): Promise<string> {
+    return new Promise<string>(async (resolve) => {
+      const tmpCopyPath = `${serviceTmp.tmpFolder}/${this.config.name}`;
+      const tmpArchivePath = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      await this.copyProject(this.projectFolderPath, tmpCopyPath);
+      await this.cleanFolder(tmpCopyPath);
+      await this.createArchive(tmpCopyPath, tmpArchivePath);
+
+      const result = fs.readFileSync(tmpArchivePath);
+
+      resolve(result.toString());
     });
   }
 

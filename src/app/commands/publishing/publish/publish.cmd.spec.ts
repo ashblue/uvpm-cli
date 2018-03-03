@@ -19,6 +19,7 @@ import { SinonStub } from 'sinon';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
+import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -30,27 +31,6 @@ async function getFiles (destination: string) {
 
       resolve(res);
     });
-  });
-}
-
-/**
- * Turn source code from a project into an archive
- * @param {string} destination Where the archive is created at
- * @param {CmdPublish} cmd Class reference for publish command
- * @param {string} source Location of the project source to archive
- * @returns {Promise<string>}
- */
-function getArchiveAsString (destination: string, cmd: CmdPublish, source: string): Promise<string> {
-  return new Promise(async (resolve) => {
-    const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
-
-    await cmd.copyProject(source, destination);
-    await cmd.cleanFolder(destination);
-    await cmd.createArchive(destination, archiveDestination);
-
-    const result = fs.readFileSync(archiveDestination);
-
-    resolve(result.toString());
   });
 }
 
@@ -112,21 +92,18 @@ describe('CmdPublish', () => {
     let stubPackageCreate: SinonStub;
     let stubPackageGet: SinonStub;
     let stubPackageVersionsAdd: SinonStub;
+    let stubProjectFolderPath: SinonStub;
 
-    beforeEach(async () => {
-      const archive = await getArchiveAsString(destination, cmd, source);
+    beforeEach(() => {
       unityPackageData = {
         name: config.name,
         versions: [
           {
             name: config.version.toString(),
-            archive,
+            archive: 'ARCHIVE GOES HERE',
           },
         ],
       };
-
-      serviceTmp.clear();
-      serviceTmp.create();
     });
 
     beforeEach(() => {
@@ -139,6 +116,9 @@ describe('CmdPublish', () => {
       stubPackageGet = sinon.stub(servicePackages, 'get');
       // @ts-ignore
       stubPackageGet.callsFake(() => new Promise((resolve, reject) => reject()));
+
+      stubProjectFolderPath = sinon.stub(CmdPublish.prototype, 'projectFolderPath' as any);
+      stubProjectFolderPath.get(() => tmpProjectFolder.name);
     });
 
     afterEach(() => {
@@ -207,8 +187,10 @@ describe('CmdPublish', () => {
         expect(stubPackageCreate.called).to.be.ok;
       });
 
-      xit('should receive the package data with the archive', async () => {
+      it('should receive the package data with the archive', async () => {
         await cmd.action();
+
+        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
 
         const callArgs = stubPackageCreate.args[0][0] as any;
         expect(callArgs.name).to.eq(config.name);
@@ -218,62 +200,37 @@ describe('CmdPublish', () => {
     });
 
     describe('package versions create service', () => {
-      it('should be called if this package already exists', async () => {
+      beforeEach(() => {
         stubPackageGet.callsFake(() => new Promise((resolve) => resolve({})));
+      });
 
+      it('should be called if this package already exists', async () => {
         await cmd.action();
 
         expect(stubPackageVersionsAdd.called).to.be.ok;
       });
 
-      xit('should receive the package data with the archive');
-    });
+      it('should receive the package data with the archive', async () => {
+        await cmd.action();
 
-    xit('should publish an archive file to the server for a new package', async () => {
-      const archive = await getArchiveAsString(destination, cmd, source);
-      const packageCreateData: IPackage = {
-        name: config.name,
-        versions: [
-          {
-            name: config.version.toString(),
-            archive,
-          },
-        ],
-      };
+        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
 
-      serviceTmp.clear();
-      serviceTmp.create();
+        const packageName: string = stubPackageVersionsAdd.args[0][0] as any;
+        const version: IPackageVersion = stubPackageVersionsAdd.args[0][1] as any;
 
-      stubPackageCreate.callsFake(() => new Promise((resolve) => resolve));
-
-      // @TODO Point the publish command project location to the tmp folder (overridable accessor)
-      // Expect the package service to run with appropriate data and return a success message
-      // No error logs detected
-
-      await cmd.action();
-
-      expect(stubPackageCreate.called).to.be.ok;
-      expect(stubPackageCreate.calledWith(packageCreateData)).to.be.ok;
-      expect(cmd.lastLogErr).to.not.be.ok;
+        expect(packageName).to.eq(unityPackageData.name);
+        expect(version.name).to.eq(config.version.toString());
+        expect(version.archive).to.eq(unityPackageData.versions[0].archive);
+      });
     });
 
     xit('should log an error if the package service fails');
-
-    xit('should use the uvpm.json package name and version to publish');
-
-    xit('should use a package create command if first time publishing');
-
-    xit('should use a version add command if the package already exists');
-
-    xit('should display to the user the progress of the file upload');
 
     xit('should delete the leftover files after the action completes');
 
     xit('should fail if the target folder is missing');
 
     xit('should fail if the version is missing');
-
-    xit('should fail if the version name already exists');
   });
 
   describe('copyProject', () => {
