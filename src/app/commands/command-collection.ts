@@ -15,6 +15,7 @@ import { ModelProfile } from '../models/profile/profile.model';
 import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 import { ServicePackages } from '../services/packages/packages.service';
 import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
+import { CmdPublish } from './publishing/publish/publish.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -34,6 +35,7 @@ export class CommandCollection {
     CmdLogout,
     CmdWhoami,
     CmdVersion,
+    CmdPublish,
   ];
 
   constructor (
