@@ -31,6 +31,11 @@ export class CmdPublish extends CmdBase {
     return true;
   }
 
+  // istanbul ignore next
+  /**
+   * Overridable method for changing the project folder during testing
+   * @returns {string}
+   */
   private get projectFolderPath (): string {
     return '.';
   }
@@ -49,7 +54,11 @@ export class CmdPublish extends CmdBase {
       });
 
       output.on('close', () => resolve());
+
+      // istanbul ignore next
       archive.on('error', (err) => reject(err));
+
+      // istanbul ignore next
       archive.on('warning', (err) => {
         if (err.code === 'ENOENT') {
           console.warn(err);
@@ -91,6 +100,11 @@ export class CmdPublish extends CmdBase {
    */
   public cleanFolder (folder: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
+      if (!fs.existsSync(folder)) {
+        reject(`Folder ${folder} does not exist`);
+        return;
+      }
+
       try {
         const whitelist: string[] = [
           'uvpm.json',
@@ -127,6 +141,7 @@ export class CmdPublish extends CmdBase {
 
         resolve();
       } catch (err) {
+        // istanbul ignore next
         reject(err);
       }
     });
@@ -135,7 +150,25 @@ export class CmdPublish extends CmdBase {
   protected onAction (): Promise<void> {
     this.log('Packaging file for publishing...');
 
-    return new Promise<void>(async (resolve) => {
+    return new Promise<void>(async (resolve, reject) => {
+      serviceTmp.create();
+
+      if (!this.config.version) {
+        reject('Please provide a version in your uvpm.json file');
+        return;
+      }
+
+      if (!this.config.publishing) {
+        reject('Please provide a valid config.publishing object');
+        return;
+      }
+
+      const publishPath = `${this.projectFolderPath}/${this.config.publishing.targetFolder}`;
+      if (!fs.existsSync(publishPath)) {
+        reject(`The publish folder ${this.config.publishing.targetFolder} does not exist`);
+        return;
+      }
+
       const archive = await this.copyProjectToArchive();
 
       const packagedData: IPackage = {
@@ -156,15 +189,31 @@ export class CmdPublish extends CmdBase {
       }
 
       if (!serverPackage) {
-        await this.servicePackages.create(packagedData);
+        try {
+          await this.servicePackages.create(packagedData);
+        } catch (err) {
+          reject(err);
+          return;
+        }
       } else {
-        await this.servicePackageVersions.add(packagedData.name, packagedData.versions[0]);
+        try {
+          await this.servicePackageVersions.add(packagedData.name, packagedData.versions[0]);
+        } catch (err) {
+          reject(err);
+          return;
+        }
       }
 
       this.log(`Package ${this.config.name} v${this.config.version} published to ${this.profile.server}`);
 
+      this.clearTmp();
+
       resolve();
     });
+  }
+
+  private clearTmp () {
+    serviceTmp.clear();
   }
 
   private copyProjectToArchive (): Promise<string> {
@@ -184,6 +233,7 @@ export class CmdPublish extends CmdBase {
   private getAllFilesRecursively (folder: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
       glob(`${folder}/**/*`, { dot: true }, (err, res) => {
+        // istanbul ignore if
         if (err) {
           reject(err);
           return;

@@ -7,6 +7,7 @@ export class CmdVersion extends CmdBase {
    * Overridable testing method for UVPM.json files
    * @returns {ModelUvpmConfig}
    */
+  // istanbul ignore next
   get uvpmConfig (): ModelUvpmConfig {
     return new ModelUvpmConfig();
   }

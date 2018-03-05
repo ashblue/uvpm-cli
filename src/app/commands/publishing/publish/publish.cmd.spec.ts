@@ -93,6 +93,7 @@ describe('CmdPublish', () => {
     let stubPackageGet: SinonStub;
     let stubPackageVersionsAdd: SinonStub;
     let stubProjectFolderPath: SinonStub;
+    let stubClearTmp: SinonStub;
 
     beforeEach(() => {
       unityPackageData = {
@@ -110,21 +111,25 @@ describe('CmdPublish', () => {
       stubPackageCreate = sinon.stub(servicePackages, 'create');
       stubPackageCreate.callsFake(() => new Promise((resolve) => resolve()));
 
-      stubPackageVersionsAdd = sinon.stub(servicePackageVersions, 'add');
-      stubPackageVersionsAdd.callsFake(() => new Promise((resolve) => resolve()));
-
       stubPackageGet = sinon.stub(servicePackages, 'get');
       // @ts-ignore
       stubPackageGet.callsFake(() => new Promise((resolve, reject) => reject()));
 
+      stubPackageVersionsAdd = sinon.stub(servicePackageVersions, 'add');
+      stubPackageVersionsAdd.callsFake(() => new Promise((resolve) => resolve()));
+
       stubProjectFolderPath = sinon.stub(CmdPublish.prototype, 'projectFolderPath' as any);
       stubProjectFolderPath.get(() => tmpProjectFolder.name);
+
+      stubClearTmp = sinon.stub(CmdPublish.prototype, 'clearTmp' as any);
     });
 
     afterEach(() => {
       stubPackageCreate.restore();
-      stubPackageVersionsAdd.restore();
       stubPackageGet.restore();
+      stubPackageVersionsAdd.restore();
+      stubProjectFolderPath.restore();
+      stubClearTmp.restore();
     });
 
     it('should run', async () => {
@@ -197,6 +202,19 @@ describe('CmdPublish', () => {
         expect(callArgs.versions[0].name).to.eq(config.version.toString());
         expect(callArgs.versions[0].archive).to.eq(unityPackageData.versions[0].archive);
       });
+
+      it('should log an error if the service fails', async () => {
+        const errMsg = 'Failed to get the requested package';
+
+        stubPackageCreate.callsFake(() => {
+          // @ts-ignore
+          return new Promise((resolve, reject) => reject(errMsg));
+        });
+
+        await cmd.action();
+
+        expect(cmd.lastLogErr).to.eq(errMsg);
+      });
     });
 
     describe('package versions create service', () => {
@@ -222,15 +240,57 @@ describe('CmdPublish', () => {
         expect(version.name).to.eq(config.version.toString());
         expect(version.archive).to.eq(unityPackageData.versions[0].archive);
       });
+
+      it('should log an error if the service fails', async () => {
+        const errMsg = 'Failed to add the requested package service';
+
+        stubPackageVersionsAdd.callsFake(() => {
+          // @ts-ignore
+          return new Promise((resolve, reject) => reject(errMsg));
+        });
+
+        await cmd.action();
+
+        expect(cmd.lastLogErr).to.eq(errMsg);
+      });
     });
 
-    xit('should log an error if the package service fails');
+    it('should delete the leftover files after the action completes', async () => {
+      stubClearTmp.callThrough();
 
-    xit('should delete the leftover files after the action completes');
+      await cmd.action();
 
-    xit('should fail if the target folder is missing');
+      expect(fs.existsSync(serviceTmp.tmpFolder)).to.not.be.ok;
+    });
 
-    xit('should fail if the version is missing');
+    it('should fail if the target folder is missing', async () => {
+      const nonExistentFolder = 'i-do-not-exist';
+      const errMsg = `The publish folder ${nonExistentFolder} does not exist`;
+
+      config.publishing.targetFolder = 'i-do-not-exist';
+
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.eq(errMsg);
+    });
+
+    it('should fail if the config.version is missing', async () => {
+      const errMsg = `Please provide a version in your uvpm.json file`;
+      config.version = undefined as any;
+
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.eq(errMsg);
+    });
+
+    it('should fail if the config.publishing object is missing', async () => {
+      const errMsg = `Please provide a valid config.publishing object`;
+      config.publishing = undefined as any;
+
+      await cmd.action();
+
+      expect(cmd.lastLogErr).to.eq(errMsg);
+    });
   });
 
   describe('copyProject', () => {
@@ -257,7 +317,16 @@ describe('CmdPublish', () => {
       expect(fs.existsSync(`${destination}/uvpm.json`)).to.be.ok;
     });
 
-    xit('should not copy the git directory over');
+    it('should fail if the directory to copy does not exist', async () => {
+      let err: string = undefined as any;
+      try {
+        await cmd.copyProject('i-do-not-exist', destination);
+      } catch (message) {
+        err = message;
+      }
+
+      expect(err).to.be.ok;
+    });
   });
 
   describe('cleanFolder', () => {
@@ -274,6 +343,24 @@ describe('CmdPublish', () => {
       expect(targetFolder).to.be.ok;
       expect(files.length).to.eq(2);
       expect(targetFolderFiles.length > 1).to.be.ok;
+    });
+
+    it('should not copy the git directory over', async () => {
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+
+      expect(fs.existsSync(`${destination}/.git`)).to.not.be.ok;
+    });
+
+    it('should fail if the source does not exist', async () => {
+      let err: string = undefined as any;
+      try {
+        await cmd.cleanFolder('i-do-not-exist');
+      } catch (message) {
+        err = message;
+      }
+
+      expect(err).to.eq(`Folder i-do-not-exist does not exist`);
     });
   });
 

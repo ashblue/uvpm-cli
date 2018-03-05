@@ -78,4 +78,8 @@ sysinfo.txt
     file: 'Dist.unitypackage',
     path: 'Assets/Dist',
   },
+  {
+    file: 'placeholder.txt',
+    path: '.git',
+  },
 ];
