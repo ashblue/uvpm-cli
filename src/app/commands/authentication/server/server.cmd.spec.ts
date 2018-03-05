@@ -4,12 +4,31 @@ import { CmdServer } from './server.cmd';
 import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
 describe('CmdServer', () => {
+  let cmd: CmdServer;
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+  let config: ModelUvpmConfig;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+    config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
+
+    cmd = new CmdServer(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+  });
+
   it('should initialize', () => {
-    const cmd = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
@@ -17,46 +36,37 @@ describe('CmdServer', () => {
     describe('server', () => {
       it('should print the current server', async () => {
         const url = 'http://asdf.com';
-        const cmdServer = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
 
-        await cmdServer.action(url);
-        await cmdServer.action();
+        await cmd.action(url);
+        await cmd.action();
 
-        expect(cmdServer.lastLog).to.contain(`Current server is "${url}"`);
+        expect(cmd.lastLog).to.contain(`Current server is "${url}"`);
       });
 
       it('should display an error if no server has been set', async () => {
-        const cmdInit = new CmdServer(new ServiceDatabase(), new Command(), inquirer);
+        await cmd.action();
 
-        await cmdInit.action();
-
-        expect(cmdInit.lastLogErr).to.contain('Please set a server');
+        expect(cmd.lastLogErr).to.contain('Please set a server');
       });
     });
 
     describe('server [url]', () => {
       it('should write to the user profile with the server"', async () => {
         const url = 'http://asdf.com';
-        const db = new ServiceDatabase();
-        const cmdServer = new CmdServer(db, new Command(), inquirer);
-        const profile = new ModelProfile(db);
 
-        await cmdServer.action(url);
+        await cmd.action(url);
         await profile.load();
 
         expect(profile.server).to.eq(url);
-        expect(cmdServer.lastLog).to.contain(`Server set to "${url}"`);
+        expect(cmd.lastLog).to.contain(`Server set to "${url}"`);
       });
 
       it('should overwrite the previous url if run again', async () => {
         const url = 'http://asdf.com';
         const newUrl = 'http://fdsa.com';
-        const db = new ServiceDatabase();
-        const cmdServer = new CmdServer(db, new Command(), inquirer);
-        const profile = new ModelProfile(db);
 
-        await cmdServer.action(url);
-        await cmdServer.action(newUrl);
+        await cmd.action(url);
+        await cmd.action(newUrl);
         await profile.load();
 
         expect(profile.server).to.eq(newUrl);

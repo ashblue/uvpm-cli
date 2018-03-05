@@ -2,6 +2,9 @@ import { IProfile } from '../../shared/interfaces/profiles/i-profile';
 import Database = PouchDB.Database;
 import { ServiceDatabase } from '../../services/database/database.service';
 
+/**
+ * @TODO This should be broken up into a service (database portion) and model (data structure, helpers, and constructor)
+ */
 export class ModelProfile implements IProfile {
   public static profileId = 'default';
 

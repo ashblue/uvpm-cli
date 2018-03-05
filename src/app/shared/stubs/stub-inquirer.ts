@@ -4,7 +4,7 @@ import { Answers } from 'inquirer';
  * Stub for testing inquirer
  */
 export class StubInquirer {
-  constructor (private answers?: Answers) {
+  constructor (public answers?: Answers) {
   }
 
   /**

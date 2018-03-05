@@ -7,26 +7,54 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { SinonStub } from 'sinon';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelProfile } from '../../../models/profile/profile.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
 describe('CmdVersion', () => {
+  let db: ServiceDatabase;
+  let profile: ModelProfile;
+  let config: ModelUvpmConfig;
+  let cmd: CmdVersion;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
+
+  let stubRequireUvpmJson: SinonStub;
+
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+    config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
+
+    stubRequireUvpmJson = sinon.stub(CmdVersion.prototype, 'requireUvpmJson' as any);
+    stubRequireUvpmJson.get(() => {
+      return false;
+    });
+
+    cmd = new CmdVersion(db, profile, config, new Command(), inquirer,
+      servicePackages, servicePackageVersions);
+  });
+
   it('should initialize', () => {
-    const cmd = new CmdVersion(new ServiceDatabase(), new Command(), inquirer);
     expect(cmd).to.be.ok;
   });
 
   it('should fail if there is no uvpm.json', async () => {
-    const cmd = new CmdVersion(new ServiceDatabase(), new Command(), inquirer);
-    const errMsg = `Please create a uvpm.json file via "uvpm init" to run version commands`;
+    const errMsg = `Please create a uvpm.json file via`;
+    stubRequireUvpmJson.get(() => {
+      return true;
+    });
+
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.eq(errMsg);
+    expect(cmd.lastLogErr).to.contain(errMsg);
   });
 
   describe('when initialized with uvpm.json and running command', () => {
-    let db: ServiceDatabase;
-    let cmdVersion: CmdVersion;
     let stubUvpmConfig: SinonStub;
 
     let uvpmConfigModel: ModelUvpmConfig;
@@ -34,7 +62,6 @@ describe('CmdVersion', () => {
     let stubUvpmConfigModelSave: SinonStub;
 
     beforeEach(() => {
-      db = new ServiceDatabase();
       uvpmConfigModel = new ModelUvpmConfig();
       stubUvpmConfigModelLoad = sinon.stub(uvpmConfigModel, 'load')
         .callsFake(() => {
@@ -45,8 +72,7 @@ describe('CmdVersion', () => {
           return new Promise((resolve) => resolve());
         });
 
-      cmdVersion = new CmdVersion(db, new Command(), inquirer);
-      stubUvpmConfig = sinon.stub(cmdVersion, 'uvpmConfig')
+      stubUvpmConfig = sinon.stub(cmd, 'uvpmConfig')
         .get(() => {
           return uvpmConfigModel;
         });
@@ -67,12 +93,12 @@ describe('CmdVersion', () => {
         uvpmConfigModel.version = new ModelVersion(packVersion);
         uvpmConfigModel.name = packName;
 
-        await cmdVersion.action();
+        await cmd.action();
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.not.be.ok;
-        expect(cmdVersion.lastLog).to.contain(successMsg);
-        expect(cmdVersion.lastLogErr).to.be.not.ok;
+        expect(cmd.lastLog).to.contain(successMsg);
+        expect(cmd.lastLogErr).to.be.not.ok;
       });
     });
 
@@ -86,11 +112,11 @@ describe('CmdVersion', () => {
         uvpmConfigModel.version = new ModelVersion(packVersion);
         uvpmConfigModel.name = packName;
 
-        await cmdVersion.action(packVersionNew);
+        await cmd.action(packVersionNew);
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmdVersion.lastLog).to.eq(successMsg);
+        expect(cmd.lastLog).to.eq(successMsg);
       });
 
       it('should reject an invalidly formatted version', async () => {
@@ -99,9 +125,9 @@ describe('CmdVersion', () => {
 
         uvpmConfigModel.version = new ModelVersion(packVersion);
 
-        await cmdVersion.action(packVersion);
+        await cmd.action(packVersion);
 
-        expect(cmdVersion.lastLogErr).to.eq(completeMsg);
+        expect(cmd.lastLogErr).to.eq(completeMsg);
       });
     });
 
@@ -115,11 +141,11 @@ describe('CmdVersion', () => {
         uvpmConfigModel.version = new ModelVersion(packVersion);
         uvpmConfigModel.name = packName;
 
-        await cmdVersion.action('major');
+        await cmd.action('major');
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmdVersion.lastLog).to.contain(successMsg);
+        expect(cmd.lastLog).to.contain(successMsg);
       });
     });
 
@@ -133,11 +159,11 @@ describe('CmdVersion', () => {
         uvpmConfigModel.version = new ModelVersion(packVersion);
         uvpmConfigModel.name = packName;
 
-        await cmdVersion.action('minor');
+        await cmd.action('minor');
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmdVersion.lastLog).to.contain(successMsg);
+        expect(cmd.lastLog).to.contain(successMsg);
       });
     });
 
@@ -151,11 +177,11 @@ describe('CmdVersion', () => {
         uvpmConfigModel.version = new ModelVersion(packVersion);
         uvpmConfigModel.name = packName;
 
-        await cmdVersion.action('patch');
+        await cmd.action('patch');
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmdVersion.lastLog).to.contain(successMsg);
+        expect(cmd.lastLog).to.contain(successMsg);
       });
     });
   });

@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import { App } from './app';
 const expect = chai.expect;
 
-describe('CtrlHelloWorld', () => {
+describe('App', () => {
   it('should initialize', () => {
     const inst = new App();
 
@@ -10,9 +10,9 @@ describe('CtrlHelloWorld', () => {
   });
 
   describe('init', () => {
-    it('should run', () => {
+    it('should run', async () => {
       const inst = new App();
-      inst.init();
+      await inst.init();
     });
   });
 });

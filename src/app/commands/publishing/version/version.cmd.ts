@@ -7,6 +7,7 @@ export class CmdVersion extends CmdBase {
    * Overridable testing method for UVPM.json files
    * @returns {ModelUvpmConfig}
    */
+  // istanbul ignore next
   get uvpmConfig (): ModelUvpmConfig {
     return new ModelUvpmConfig();
   }
@@ -19,6 +20,11 @@ export class CmdVersion extends CmdBase {
     return `Set a new version directly "uvpm version 1.0.1".
       Or increment the current version "uvpm version major|minor|patch" as so "uvpm version minor".
       Versioning is based upon the Semantic Versioning specification. See semver.org to learn more.`;
+  }
+
+  // istanbul ignore next: Stubbed during testing
+  protected get requireUvpmJson (): boolean {
+    return true;
   }
 
   protected onAction (newVersion?: string): Promise<void> {
@@ -39,9 +45,6 @@ export class CmdVersion extends CmdBase {
               resolve();
             })
             .catch(reject);
-        })
-        .catch( () => {
-          reject('Please create a uvpm.json file via "uvpm init" to run version commands');
         });
     });
   }

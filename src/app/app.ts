@@ -1,16 +1,33 @@
 import { CommandCollection } from './commands/command-collection';
 import { Command } from 'commander';
 import * as inquirer from 'inquirer';
-import { config } from './shared/config';
+import { appConfig } from './shared/config';
 import { ServiceDatabase } from './services/database/database.service';
+import { ModelProfile } from './models/profile/profile.model';
+import { ModelUvpmConfig } from './models/uvpm/uvpm-config.model';
+import { ServicePackages } from './services/packages/packages.service';
+import { ServicePackageVersions } from './services/package-versions/package-versions.service';
 
 export class App {
-  private commandCollection = new CommandCollection(new ServiceDatabase(), new Command(), inquirer);
+  public init (): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+      const db = new ServiceDatabase();
 
-  public init () {
-    /* istanbul ignore if */
-    if (!config.isEnvTest) {
-      this.commandCollection.listen();
-    }
+      const profile = new ModelProfile(db);
+      await profile.load();
+
+      const config = new ModelUvpmConfig();
+      await config.load();
+
+      const commandCollection = new CommandCollection(db, profile, config, new Command(), inquirer,
+        new ServicePackages(profile), new ServicePackageVersions(profile));
+
+      /* istanbul ignore if */
+      if (!appConfig.isEnvTest) {
+        commandCollection.listen();
+      }
+
+      resolve();
+    });
   }
 }

@@ -8,23 +8,38 @@ import * as fs from 'fs';
 import * as chai from 'chai';
 import { ModelVersion } from '../../../models/version/version.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
+import { ModelProfile } from '../../../models/profile/profile.model';
+import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
+import { ServicePackages } from '../../../services/packages/packages.service';
 
 const expect = chai.expect;
 
 describe('CmdInit', () => {
-  it('should initialize', () => {
-    const cmdInit = new CmdInit(new ServiceDatabase(), new Command(), new StubInquirer() as any);
+  let cmdInit: CmdInit;
+  let db: ServiceDatabase;
+  let config: ModelUvpmConfig;
+  let stubInquirer: StubInquirer;
+  let profile: ModelProfile;
+  let servicePackages: ServicePackages;
+  let servicePackageVersions: ServicePackageVersions;
 
+  beforeEach(async () => {
+    db = new ServiceDatabase();
+    profile = new ModelProfile(db);
+    stubInquirer = new StubInquirer();
+    config = new ModelUvpmConfig();
+    servicePackages = new ServicePackages(profile);
+    servicePackageVersions = new ServicePackageVersions(profile);
+
+    cmdInit = new CmdInit(db, profile, config, new Command(), stubInquirer as any,
+      servicePackages, servicePackageVersions);
+  });
+
+  it('should initialize', () => {
     expect(cmdInit).to.be.ok;
   });
 
   describe('when run', () => {
-    let cmd: Command;
-
-    beforeEach(() => {
-      cmd = new Command();
-    });
-
     afterEach(() => {
       if (fs.existsSync(`./${ModelUvpmConfig.fileName}`)) {
         fs.unlinkSync(`./${ModelUvpmConfig.fileName}`);
@@ -40,7 +55,7 @@ describe('CmdInit', () => {
         license: 'None',
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      stubInquirer.answers = answers;
       expect(cmdInit).to.be.ok;
       await cmdInit.action();
 
@@ -65,7 +80,7 @@ describe('CmdInit', () => {
         license: undefined,
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      stubInquirer.answers = answers;
       expect(cmdInit).to.be.ok;
       await cmdInit.action();
 
@@ -92,7 +107,7 @@ describe('CmdInit', () => {
         license: undefined,
       };
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer(answers) as any);
+      stubInquirer.answers = answers;
       await cmdInit.action();
       const contents = fs.readFileSync(`./${ModelUvpmConfig.fileName}`);
       const configData = JSON.parse(contents.toString()) as IUvpmConfig;
@@ -105,7 +120,7 @@ describe('CmdInit', () => {
     it('should fail if a uvpm.json file already exists', async () => {
       fs.writeFileSync(`./${ModelUvpmConfig.fileName}`, '{}');
 
-      const cmdInit = new CmdInit(new ServiceDatabase(), cmd, new StubInquirer({}) as any);
+      stubInquirer.answers = {};
       expect(cmdInit).to.be.ok;
 
       await cmdInit.action();
