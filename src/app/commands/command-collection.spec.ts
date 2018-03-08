@@ -54,9 +54,17 @@ describe('CommandCollection', () => {
         expect(match).to.be.ok;
       });
 
-      it('should inject a version command', () => {
+      it('should inject a publish command', () => {
         const match = col.commandInstances.find((i) => {
           return i.name.toLowerCase().includes('publish');
+        });
+
+        expect(match).to.be.ok;
+      });
+
+      it('should inject an unpublish command', () => {
+        const match = col.commandInstances.find((i) => {
+          return i.name.toLowerCase().includes('unpublish');
         });
 
         expect(match).to.be.ok;

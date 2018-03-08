@@ -16,6 +16,7 @@ import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 import { ServicePackages } from '../services/packages/packages.service';
 import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
 import { CmdPublish } from './publishing/publish/publish.cmd';
+import { CmdUnpublish } from './publishing/unpublish/unpublish.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -36,6 +37,7 @@ export class CommandCollection {
     CmdWhoami,
     CmdVersion,
     CmdPublish,
+    CmdUnpublish,
   ];
 
   constructor (
