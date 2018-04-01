@@ -1,4 +1,3 @@
-import { Command } from 'commander';
 import { CmdInit } from './init.cmd';
 import { StubInquirer } from '../../../shared/stubs/stub-inquirer';
 import { IUvpmConfig } from '../../../shared/interfaces/uvpm/config/i-uvpm-config';
@@ -11,6 +10,7 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -31,8 +31,14 @@ describe('CmdInit', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmdInit = new CmdInit(db, profile, config, new Command(), stubInquirer as any,
-      servicePackages, servicePackageVersions);
+    cmdInit = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withInquirer(stubInquirer as any)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdInit);
   });
 
   it('should initialize', () => {
@@ -125,7 +131,7 @@ describe('CmdInit', () => {
 
       await cmdInit.action();
 
-      expect(cmdInit.lastLogErr).to.contain(`Cannot overwrite ${ModelUvpmConfig.fileName}`);
+      expect(cmdInit.logError.lastEntry).to.contain(`Cannot overwrite ${ModelUvpmConfig.fileName}`);
 
       const contents = fs.readFileSync(`./${ModelUvpmConfig.fileName}`).toString();
       expect(contents).to.be.ok;

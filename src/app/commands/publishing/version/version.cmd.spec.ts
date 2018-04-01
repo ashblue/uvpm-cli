@@ -1,7 +1,5 @@
 import * as chai from 'chai';
-import { Command } from 'commander';
 import { CmdVersion } from './version.cmd';
-import * as inquirer from 'inquirer';
 import * as sinon from 'sinon';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { SinonStub } from 'sinon';
@@ -10,6 +8,7 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -35,8 +34,13 @@ describe('CmdVersion', () => {
       return false;
     });
 
-    cmd = new CmdVersion(db, profile, config, new Command(), inquirer,
-      servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdVersion);
   });
 
   it('should initialize', () => {
@@ -51,7 +55,7 @@ describe('CmdVersion', () => {
 
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.contain(errMsg);
+    expect(cmd.logError.lastEntry).to.contain(errMsg);
   });
 
   describe('when initialized with uvpm.json and running command', () => {
@@ -97,8 +101,8 @@ describe('CmdVersion', () => {
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.not.be.ok;
-        expect(cmd.lastLog).to.contain(successMsg);
-        expect(cmd.lastLogErr).to.be.not.ok;
+        expect(cmd.log.lastEntry).to.contain(successMsg);
+        expect(cmd.logError.lastEntry).to.be.not.ok;
       });
     });
 
@@ -116,7 +120,7 @@ describe('CmdVersion', () => {
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmd.lastLog).to.eq(successMsg);
+        expect(cmd.log.lastEntry).to.eq(successMsg);
       });
 
       it('should reject an invalidly formatted version', async () => {
@@ -127,7 +131,7 @@ describe('CmdVersion', () => {
 
         await cmd.action(packVersion);
 
-        expect(cmd.lastLogErr).to.eq(completeMsg);
+        expect(cmd.logError.lastEntry).to.eq(completeMsg);
       });
     });
 
@@ -145,7 +149,7 @@ describe('CmdVersion', () => {
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmd.lastLog).to.contain(successMsg);
+        expect(cmd.log.lastEntry).to.contain(successMsg);
       });
     });
 
@@ -163,7 +167,7 @@ describe('CmdVersion', () => {
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmd.lastLog).to.contain(successMsg);
+        expect(cmd.log.lastEntry).to.contain(successMsg);
       });
     });
 
@@ -181,7 +185,7 @@ describe('CmdVersion', () => {
 
         expect(stubUvpmConfigModelLoad.called).to.be.ok;
         expect(stubUvpmConfigModelSave.called).to.be.ok;
-        expect(cmd.lastLog).to.contain(successMsg);
+        expect(cmd.log.lastEntry).to.contain(successMsg);
       });
     });
   });

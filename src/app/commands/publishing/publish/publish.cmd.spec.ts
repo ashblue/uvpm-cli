@@ -1,7 +1,5 @@
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
-import * as inquirer from 'inquirer';
-import { Command } from 'commander';
 import { CmdPublish } from './publish.cmd';
 import { expect } from 'chai';
 import { ExampleProjectUnity } from '../../../shared/tests/example-project/unity/example-project-unity';
@@ -20,6 +18,7 @@ import { ServicePackageVersions } from '../../../services/package-versions/packa
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
+import { A } from '../../../shared/tests/builder/a';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -65,7 +64,13 @@ describe('CmdPublish', () => {
     stubIsFile = sinon.stub(config, 'isFile')
       .get(() => true);
 
-    cmd = new CmdPublish(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdPublish);
   });
 
   beforeEach(async () => {
@@ -141,8 +146,8 @@ describe('CmdPublish', () => {
 
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.not.be.ok;
-      expect(cmd.lastLog).to.eq(successMessage);
+      expect(cmd.logError.lastEntry).to.not.be.ok;
+      expect(cmd.log.lastEntry).to.eq(successMessage);
     });
 
     it('should fail if a uvpm.json file is not present', async () => {
@@ -151,7 +156,7 @@ describe('CmdPublish', () => {
       stubIsFile.get(() => false);
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.contain(errMsg);
+      expect(cmd.logError.lastEntry).to.contain(errMsg);
     });
 
     it('should fail if a server has not been set', async () => {
@@ -160,7 +165,7 @@ describe('CmdPublish', () => {
       profile.server = null;
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.contain(errMsg);
+      expect(cmd.logError.lastEntry).to.contain(errMsg);
     });
 
     it('should fail if the user is not logged in', async () => {
@@ -170,13 +175,13 @@ describe('CmdPublish', () => {
       profile.token = undefined as any;
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.contain(errMsg);
+      expect(cmd.logError.lastEntry).to.contain(errMsg);
     });
 
     it('should print a message when starting', async () => {
       await cmd.action();
 
-      expect(cmd.logHistory[0]).to.eq('Packaging file for publishing...');
+      expect(cmd.log.history[0]).to.eq('Packaging file for publishing...');
     });
 
     it('should call get the package by name', async () => {
@@ -213,7 +218,7 @@ describe('CmdPublish', () => {
 
         await cmd.action();
 
-        expect(cmd.lastLogErr).to.eq(errMsg);
+        expect(cmd.logError.lastEntry).to.eq(errMsg);
       });
     });
 
@@ -251,7 +256,7 @@ describe('CmdPublish', () => {
 
         await cmd.action();
 
-        expect(cmd.lastLogErr).to.eq(errMsg);
+        expect(cmd.logError.lastEntry).to.eq(errMsg);
       });
     });
 
@@ -271,7 +276,7 @@ describe('CmdPublish', () => {
 
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.eq(errMsg);
+      expect(cmd.logError.lastEntry).to.eq(errMsg);
     });
 
     it('should fail if the config.version is missing', async () => {
@@ -280,7 +285,7 @@ describe('CmdPublish', () => {
 
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.eq(errMsg);
+      expect(cmd.logError.lastEntry).to.eq(errMsg);
     });
 
     it('should fail if the config.publishing object is missing', async () => {
@@ -289,7 +294,7 @@ describe('CmdPublish', () => {
 
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.eq(errMsg);
+      expect(cmd.logError.lastEntry).to.eq(errMsg);
     });
   });
 
@@ -371,7 +376,7 @@ describe('CmdPublish', () => {
 
       await cmd.copyProject(source, destination);
       await cmd.cleanFolder(destination);
-      await cmd.createArchive(archiveSource, archiveDestination);
+      await CmdPublish.createArchive(archiveSource, archiveDestination);
 
       expect(fs.existsSync(archiveDestination)).to.be.ok;
     });
@@ -387,7 +392,7 @@ describe('CmdPublish', () => {
       expect(copiedFiles).to.be.ok;
       expect(copiedFiles.length).to.be.greaterThan(1);
 
-      await cmd.createArchive(archiveSource, archiveDestination);
+      await CmdPublish.createArchive(archiveSource, archiveDestination);
 
       // Unzip the archive
       fs.mkdirSync(unarchiveDestination);

@@ -1,6 +1,5 @@
 import * as chai from 'chai';
 import { CmdLogin } from './login.cmd';
-import { Command } from 'commander';
 import { StubInquirer } from '../../../shared/stubs/stub-inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ILoginRequest } from './i-login-request';
@@ -11,6 +10,7 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -31,8 +31,14 @@ describe('CmdLogin', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdLogin(db, profile, config, new Command(), stubInquirer as any,
-      servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withInquirer(stubInquirer as any)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdLogin);
   });
 
   it('should initialize', () => {
@@ -42,7 +48,7 @@ describe('CmdLogin', () => {
   it('should fail if a server is not set', async () => {
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.contain('Please run "uvpm server [URL]" to set an end point');
+    expect(cmd.logError.lastEntry).to.contain('Please run "uvpm server [URL]" to set an end point');
   });
 
   it('should return login credentials for a registered user', async () => {
@@ -74,8 +80,8 @@ describe('CmdLogin', () => {
     await cmd.action();
     await profile.load();
 
-    expect(cmd.logHistory[0]).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
-    expect(cmd.logHistory[1]).to.contain(`Successfully logged in as ${profile.email}`);
+    expect(cmd.log.history[0]).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
+    expect(cmd.log.history[1]).to.contain(`Successfully logged in as ${profile.email}`);
 
     await profile.load();
     expect(profile.email).to.eq(login.email);
@@ -102,7 +108,7 @@ describe('CmdLogin', () => {
       .reply(401, loginResponse);
 
     await cmd.action();
-    expect(JSON.stringify(cmd.lastLogErr)).to.contain(loginResponse.message);
+    expect(JSON.stringify(cmd.logError.lastEntry)).to.contain(loginResponse.message);
 
     await profile.load();
     expect(profile.email).to.eq(null);
@@ -127,7 +133,7 @@ describe('CmdLogin', () => {
       .replyWithError(loginResponse);
 
     await cmd.action();
-    expect(cmd.lastLogErr).to.contain(loginResponse);
+    expect(cmd.logError.lastEntry).to.contain(loginResponse);
 
     await profile.load();
     expect(profile.email).to.eq(null);
@@ -146,7 +152,7 @@ describe('CmdLogin', () => {
     await profile.save();
 
     await cmd.action();
-    expect(cmd.lastLogErr).to.be.ok;
+    expect(cmd.logError.lastEntry).to.be.ok;
 
     await profile.load();
     expect(profile.email).to.eq(null);

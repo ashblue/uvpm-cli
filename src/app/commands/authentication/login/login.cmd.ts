@@ -41,7 +41,7 @@ export class CmdLogin extends CmdBase {
       }
 
       const loginUrl = `${profile.server}/${this.postUrl}`;
-      this.log(chalk.bold(`Logging into "${loginUrl}"`));
+      this.log.print(chalk.bold(`Logging into "${loginUrl}"`));
 
       return this.inquirer.prompt(this.questions)
         .then((answers) => {
@@ -64,7 +64,7 @@ export class CmdLogin extends CmdBase {
           reject(reason.response.data);
         })
         .then(() => {
-          this.log(`Successfully logged in as ${profile.email}`);
+          this.log.print(`Successfully logged in as ${profile.email}`);
           resolve();
         });
     });

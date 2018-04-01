@@ -1,13 +1,12 @@
 import { CmdBase } from './base.cmd';
 import { ServiceDatabase } from '../../services/database/database.service';
 import { ModelProfile } from '../../models/profile/profile.model';
-import * as commander from 'commander';
-import * as inquirer from 'inquirer';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../services/packages/packages.service';
+import { A } from '../../shared/tests/builder/a';
 
 describe('CmdBase', () => {
   let cmd: CmdExample;
@@ -38,8 +37,13 @@ describe('CmdBase', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdExample(db, profile, config, new commander.Command(), inquirer,
-      servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdExample);
   });
 
   it('should initialize', () => {
@@ -57,7 +61,7 @@ describe('CmdBase', () => {
 
       stub.restore();
 
-      expect(cmd.lastLogErr).to.contain('Please set a server');
+      expect(cmd.logError.lastEntry).to.contain('Please set a server');
     });
 
     it('should require a login if "requireLogin" is set', async () => {
@@ -70,7 +74,7 @@ describe('CmdBase', () => {
 
       stub.restore();
 
-      expect(cmd.lastLogErr).to.contain('Please login');
+      expect(cmd.logError.lastEntry).to.contain('Please login');
     });
   });
 });

@@ -1,12 +1,11 @@
 import * as chai from 'chai';
-import { Command } from 'commander';
 import { CmdServer } from './server.cmd';
-import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -25,7 +24,13 @@ describe('CmdServer', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdServer(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdServer);
   });
 
   it('should initialize', () => {
@@ -40,13 +45,13 @@ describe('CmdServer', () => {
         await cmd.action(url);
         await cmd.action();
 
-        expect(cmd.lastLog).to.contain(`Current server is "${url}"`);
+        expect(cmd.log.lastEntry).to.contain(`Current server is "${url}"`);
       });
 
       it('should display an error if no server has been set', async () => {
         await cmd.action();
 
-        expect(cmd.lastLogErr).to.contain('Please set a server');
+        expect(cmd.logError.lastEntry).to.contain('Please set a server');
       });
     });
 
@@ -58,7 +63,7 @@ describe('CmdServer', () => {
         await profile.load();
 
         expect(profile.server).to.eq(url);
-        expect(cmd.lastLog).to.contain(`Server set to "${url}"`);
+        expect(cmd.log.lastEntry).to.contain(`Server set to "${url}"`);
       });
 
       it('should overwrite the previous url if run again', async () => {

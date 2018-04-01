@@ -17,19 +17,13 @@ import { ServicePackages } from '../services/packages/packages.service';
 import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
 import { CmdPublish } from './publishing/publish/publish.cmd';
 import { CmdUnpublish } from './publishing/unpublish/unpublish.cmd';
+import { ICommandNew } from '../shared/interfaces/command/i-command-new';
+import { ServiceCache } from '../services/cache/cache.service';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
 
-  private commands: Array<{
-    new (db: ServiceDatabase,
-         profile: ModelProfile,
-         config: ModelUvpmConfig,
-         program: Command,
-         inq: inquirer.Inquirer,
-         packages: ServicePackages,
-         versions: ServicePackageVersions): CmdBase,
-  }> = [
+  private commands: ICommandNew[] = [
     CmdInit,
     CmdServer,
     CmdLogin,
@@ -48,12 +42,13 @@ export class CommandCollection {
     private inq: inquirer.Inquirer,
     private servicePackages: ServicePackages,
     private servicePackageVersions: ServicePackageVersions,
+    private serviceCache: ServiceCache,
   ) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
       this.commandInstances.push(new c(this.db, this.profile, this.config, program, this.inq,
-        this.servicePackages, this.servicePackageVersions));
+        this.servicePackages, this.servicePackageVersions, this.serviceCache));
     });
   }
 

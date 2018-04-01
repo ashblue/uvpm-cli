@@ -1,12 +1,11 @@
 import * as chai from 'chai';
-import { Command } from 'commander';
-import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdLogout } from './logout.cmd';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -25,7 +24,13 @@ describe('CmdLogout', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdLogout(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdLogout);
   });
 
   it('should initialize', () => {
@@ -49,13 +54,13 @@ describe('CmdLogout', () => {
       expect(profile.email).to.not.be.ok;
       expect(profile.token).to.not.be.ok;
 
-      expect(cmd.lastLog).to.contain('Logged out');
+      expect(cmd.log.lastEntry).to.contain('Logged out');
     });
 
     it('should print success if the user isn\'t logged in', async () => {
       await cmd.action();
 
-      expect(cmd.lastLog).to.contain('Logged out');
+      expect(cmd.log.lastEntry).to.contain('Logged out');
     });
   });
 });

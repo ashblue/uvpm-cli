@@ -1,12 +1,11 @@
 import * as chai from 'chai';
-import { Command } from 'commander';
-import * as inquirer from 'inquirer';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { CmdWhoami } from './whoami.cmd';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
+import { A } from '../../../shared/tests/builder/a';
 
 const expect = chai.expect;
 
@@ -25,7 +24,13 @@ describe('CmdWhoami', () => {
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
 
-    cmd = new CmdWhoami(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdWhoami);
   });
 
   it('should initialize', () => {
@@ -44,13 +49,13 @@ describe('CmdWhoami', () => {
 
       await cmd.action();
 
-      expect(cmd.lastLog).to.contain(`Current user is: ${email}`);
+      expect(cmd.log.lastEntry).to.contain(`Current user is: ${email}`);
     });
 
     it('should print to login if not logged in', async () => {
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.contain('You must run "uvpm login" to set a user');
+      expect(cmd.logError.lastEntry).to.contain('You must run "uvpm login" to set a user');
     });
   });
 });

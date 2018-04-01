@@ -34,7 +34,7 @@ export class CmdServer extends CmdBase {
           profile.server = url;
           return profile.save()
             .then(() => {
-              this.log(chalk.green(`Server set to "${url}"`));
+              this.log.print(chalk.green(`Server set to "${url}"`));
               resolve();
             });
         });
@@ -49,9 +49,9 @@ export class CmdServer extends CmdBase {
       profile.load()
         .then(() => {
           if (!profile.server || profile.server === '') {
-            this.logErr(chalk.red('Please set a server'));
+            this.logError.print(chalk.red('Please set a server'));
           } else {
-            this.log(`Current server is "${profile.server}"`);
+            this.log.print(`Current server is "${profile.server}"`);
           }
 
           resolve();

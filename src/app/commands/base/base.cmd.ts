@@ -7,31 +7,18 @@ import { ModelProfile } from '../../models/profile/profile.model';
 import { ModelUvpmConfig } from '../../models/uvpm/uvpm-config.model';
 import { ServicePackages } from '../../services/packages/packages.service';
 import { ServicePackageVersions } from '../../services/package-versions/package-versions.service';
+import { TerminalLog } from './terminal-log/terminal-log';
+import { LogType } from './terminal-log/log-type';
+import { ServiceCache } from '../../services/cache/cache.service';
 
 export abstract class CmdBase {
   public abstract get name (): string;
   public abstract get description (): string;
 
-  /**
-   * Only populated during testing for debugging purposes
-   * @type {any[]}
-   */
-  public logHistory: string[] = [];
-
-  /**
-   * Only populated during testing for debugging purposes
-   * @type {any[]}
-   */
-  public logErrHistory: string[] = [];
-
-  public get lastLog (): string {
-    return this.logHistory[this.logHistory.length - 1];
-  }
-
-  /* istanbul ignore next */
-  public get lastLogErr (): string {
-    return this.logErrHistory[this.logErrHistory.length - 1];
-  }
+  public log = new TerminalLog(LogType.Default);
+  public logSuccess = new TerminalLog(LogType.Success);
+  public logWarning = new TerminalLog(LogType.Warning);
+  public logError = new TerminalLog(LogType.Error);
 
   protected get options (): ICmdOption[] {
     return [];
@@ -65,6 +52,7 @@ export abstract class CmdBase {
     protected inquirer: Inquirer,
     protected servicePackages: ServicePackages,
     protected servicePackageVersions: ServicePackageVersions,
+    protected serviceCache: ServiceCache,
   ) {
     this.addCliCommnd();
   }
@@ -72,20 +60,20 @@ export abstract class CmdBase {
   public action (argA?: string, argB?: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
       if (this.requireUvpmJson && !this.config.isFile) {
-        this.logErr(
+        this.logError.print(
           'Please create a uvpm.json file via "uvpm init" or run this command in a folder with a uvpm.json file');
         resolve();
         return;
       }
 
       if (this.requireServer && !this.profile.isServer) {
-        this.logErr('Please set a server before using this action by running "uvpm server [URL]"');
+        this.logError.print('Please set a server before using this action by running "uvpm server [URL]"');
         resolve();
         return;
       }
 
       if (this.requireLogin && !this.profile.isLoggedIn) {
-        this.logErr('Please login before using this action by running "uvpm login"');
+        this.logError.print('Please login before using this action by running "uvpm login"');
         resolve();
         return;
       }
@@ -96,8 +84,8 @@ export abstract class CmdBase {
           this.complete();
         })
         .catch((err) => {
-          this.logErr(`UVPM command ${this.name} failed. Error log as follows:`);
-          this.logErr(err);
+          this.logError.print(`UVPM command ${this.name} failed. Error log as follows:`);
+          this.logError.print(err);
 
           resolve();
           this.complete();
@@ -106,26 +94,6 @@ export abstract class CmdBase {
   }
 
   protected abstract onAction (argA?: string, argB?: string): Promise<void>;
-
-  /* istanbul ignore next: floods the test runner with logs */
-  protected logErr (text: string) {
-    if (appConfig.isEnvTest) {
-      this.logErrHistory.push(text);
-      return;
-    }
-
-    console.error(text);
-  }
-
-  /* istanbul ignore next: floods the test runner with logs */
-  protected log (text: string) {
-    if (appConfig.isEnvTest) {
-      this.logHistory.push(text);
-      return;
-    }
-
-    console.log(text);
-  }
 
   private complete () {
     /* istanbul ignore if: crashes test runner */

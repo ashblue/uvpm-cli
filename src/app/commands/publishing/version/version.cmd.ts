@@ -34,14 +34,14 @@ export class CmdVersion extends CmdBase {
       uvpmConfig.load()
         .then(() => {
           if (!newVersion) {
-            this.log(`Package ${uvpmConfig.name} is on version ${uvpmConfig.version}`);
+            this.log.print(`Package ${uvpmConfig.name} is on version ${uvpmConfig.version}`);
             resolve();
             return;
           }
 
           this.incrementVersion(uvpmConfig, newVersion)
             .then(() => {
-              this.log(`Package ${uvpmConfig.name} version set to ${uvpmConfig.version}`);
+              this.log.print(`Package ${uvpmConfig.name} version set to ${uvpmConfig.version}`);
               resolve();
             })
             .catch(reject);

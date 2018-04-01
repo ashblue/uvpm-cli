@@ -6,52 +6,80 @@ import * as sinon from 'sinon';
 const expect = chai.expect;
 
 describe('ServiceDatabase', () => {
+  let serviceDb: ServiceDatabase;
+
+  beforeEach(() => {
+    serviceDb = new ServiceDatabase();
+  });
+
   it('should initialize', () => {
-    const serviceDb = new ServiceDatabase();
-
     expect(serviceDb).to.be.ok;
-    expect(serviceDb.profile).to.be.ok;
-    expect(ServiceDatabase.profilePath).to.be.ok;
   });
 
-  // @TODO Randomly failing, needs to be investigated
-  xit('should create a database folder at the root of the project', () => {
-    const serviceDb = new ServiceDatabase();
-
-    expect(serviceDb).to.be.ok;
-    expect(fs.existsSync(ServiceDatabase.databasePath)).to.be.ok;
-    expect(fs.existsSync(ServiceDatabase.profilePath)).to.be.ok;
+  describe('onReady', () => {
+    it('should resolve when both databases have been created', async () => {
+      await serviceDb.onReady();
+    });
   });
 
-  describe('destroy', () => {
-    it('should delete the database folder', async () => {
-      const serviceDb = new ServiceDatabase();
-
-      await serviceDb.destroy();
-
-      expect(fs.existsSync(ServiceDatabase.databasePath)).to.not.be.ok;
-      expect(fs.existsSync(ServiceDatabase.profilePath)).to.not.be.ok;
+  describe('when ready', () => {
+    beforeEach(async () => {
+      await serviceDb.onReady();
     });
 
-    it('should fail if rmdir returns an error', async () => {
-      const serviceDb = new ServiceDatabase();
-      const errMsg = 'Error occurred';
-      const stub = sinon.stub(fs, 'rmdir');
-      stub.callsFake((path: string, method: (err: string) => void) => {
-        expect(path).to.be.ok;
-        method(errMsg);
+    it('should create a database folder at the root of the project', () => {
+      expect(fs.existsSync(ServiceDatabase.databasePath)).to.be.ok;
+    });
+
+    describe('profile', () => {
+      it('should populate a cache field with a database', () => {
+        expect(serviceDb.profile).to.be.ok;
       });
 
-      let e: any;
-      try {
+      it('should create a cache folder in the database folder', () => {
+        expect(fs.existsSync(ServiceDatabase.profilePath)).to.be.ok;
+      });
+    });
+
+    describe('cache', () => {
+      it('should populate a cache field with a database', () => {
+        expect(serviceDb.cache).to.be.ok;
+      });
+
+      it('should create a cache folder in the database folder', () => {
+        expect(fs.existsSync(ServiceDatabase.cachePath)).to.be.ok;
+      });
+    });
+
+    describe('destroy', () => {
+      it('should delete the database folder', async () => {
+        serviceDb = new ServiceDatabase();
+
         await serviceDb.destroy();
-      } catch (response) {
-        e = response;
-      }
 
-      expect(e).to.eq(errMsg);
+        expect(fs.existsSync(ServiceDatabase.databasePath)).to.not.be.ok;
+      });
 
-      stub.restore();
+      it('should gracefully fail if destroy returns an error', async () => {
+        serviceDb = new ServiceDatabase();
+        const errMsg = 'Error occurred';
+        const stub = sinon.stub(serviceDb.profile, 'destroy');
+        stub.callsFake(() => {
+          // @ts-ignore
+          return new Promise((resolve, reject) => {
+            reject(errMsg);
+          });
+        });
+
+        let e: any;
+        try {
+          await serviceDb.destroy();
+        } catch (response) {
+          e = response;
+        }
+
+        expect(e).to.eq(errMsg);
+      });
     });
   });
 });

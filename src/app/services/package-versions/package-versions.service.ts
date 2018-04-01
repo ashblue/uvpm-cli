@@ -1,6 +1,9 @@
 import { ModelProfile } from '../../models/profile/profile.model';
 import { IPackageVersion } from '../../shared/interfaces/packages/versions/i-package-version';
 import axios, { AxiosRequestConfig } from 'axios';
+import * as tmp from 'tmp';
+import * as fs from 'fs';
+import * as http from 'http';
 
 export class ServicePackageVersions {
   constructor (private profile: ModelProfile) {
@@ -71,6 +74,31 @@ export class ServicePackageVersions {
 
           reject(err);
         });
+    });
+  }
+
+  public downloadArchive (packageName: string, version: string): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      let packageData: IPackageVersion;
+      try {
+        packageData = await this.get(packageName, version);
+      } catch (err) {
+        reject(err);
+        return;
+      }
+
+      const tmpFile = tmp.fileSync();
+
+      const file = fs.createWriteStream(tmpFile.name);
+      http.get(packageData.archive, (response) => {
+        response.pipe(file);
+      }).on('error', (err) => {
+        reject(err);
+      });
+
+      file.on('close', () => {
+        resolve(tmpFile.name);
+      });
     });
   }
 }

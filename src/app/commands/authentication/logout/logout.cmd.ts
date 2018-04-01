@@ -28,7 +28,7 @@ export class CmdLogout extends CmdBase {
           return profile.save();
         })
         .then(() => {
-          this.log('Logged out');
+          this.log.print('Logged out');
           resolve();
         });
     });

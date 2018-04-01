@@ -91,7 +91,7 @@ export class CmdUnpublish extends CmdBase {
           }
         })
         .then(() => {
-          this.log(chalk.green(`Package ${this.getPackageDisplay(packageId, versionId)} successfully deleted`));
+          this.log.print(chalk.green(`Package ${this.getPackageDisplay(packageId, versionId)} successfully deleted`));
           resolve();
         })
         .catch((err) => reject(err));

@@ -7,6 +7,7 @@ import { ModelProfile } from './models/profile/profile.model';
 import { ModelUvpmConfig } from './models/uvpm/uvpm-config.model';
 import { ServicePackages } from './services/packages/packages.service';
 import { ServicePackageVersions } from './services/package-versions/package-versions.service';
+import { ServiceCache } from './services/cache/cache.service';
 
 export class App {
   public init (): Promise<void> {
@@ -20,7 +21,7 @@ export class App {
       await config.load();
 
       const commandCollection = new CommandCollection(db, profile, config, new Command(), inquirer,
-        new ServicePackages(profile), new ServicePackageVersions(profile));
+        new ServicePackages(profile), new ServicePackageVersions(profile), new ServiceCache(db));
 
       /* istanbul ignore if */
       if (!appConfig.isEnvTest) {

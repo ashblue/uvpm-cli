@@ -1,12 +1,13 @@
 import { IUvpmConfig } from '../../shared/interfaces/uvpm/config/i-uvpm-config';
 import * as fs from 'fs';
 import { ModelVersion } from '../version/version.model';
+import { IUvpmPackage } from '../../shared/interfaces/uvpm/config/i-uvpm-config-package';
 
 export const configDefaults = Object.freeze({
   version: '1.0.0',
   license: 'ISC',
   dependencies: {
-    outputFolder: 'Assets/Plugins/UPM',
+    outputFolder: 'Assets/Plugins/UVPM',
   },
   publishing: {
     targetFolder: 'Assets',
@@ -29,7 +30,7 @@ export class ModelUvpmConfig implements IUvpmConfig {
 
   public dependencies = {
     outputFolder: configDefaults.dependencies.outputFolder,
-    packages: [],
+    packages: Array<IUvpmPackage>(),
   };
 
   public publishing = {

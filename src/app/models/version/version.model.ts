@@ -46,8 +46,18 @@ export class ModelVersion implements ISemanticVersion {
     this.patch += 1;
   }
 
+  public isNewerVersion (otherVersion: ModelVersion): boolean {
+    return this.toString() !== otherVersion.toString()
+      && this.major >= otherVersion.major
+      && this.minor >= otherVersion.minor
+      && this.patch >= otherVersion.patch;
+  }
+
   private stringToVersion (s: string): boolean {
-    const split = s.split('.');
+    const sClean = s.replace('^', '')
+      .replace('~', '');
+
+    const split = sClean.split('.');
 
     this.major = parseInt(split[0], 10);
     this.minor = parseInt(split[1], 10);

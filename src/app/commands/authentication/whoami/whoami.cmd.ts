@@ -27,9 +27,9 @@ export class CmdWhoami extends CmdBase {
       profile.load()
         .then(() => {
           if (profile.isLoggedIn) {
-            this.log(`Current user is: ${profile.email}`);
+            this.log.print(`Current user is: ${profile.email}`);
           } else {
-            this.logErr(chalk.red('You must run "uvpm login" to set a user'));
+            this.logError.print(chalk.red('You must run "uvpm login" to set a user'));
           }
 
           resolve();

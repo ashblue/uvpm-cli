@@ -7,6 +7,7 @@ import { ModelProfile } from '../models/profile/profile.model';
 import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
 import { ServicePackages } from '../services/packages/packages.service';
+import { ServiceCache } from '../services/cache/cache.service';
 
 const expect = chai.expect;
 
@@ -27,7 +28,7 @@ describe('CommandCollection', () => {
     servicePackageVersions = new ServicePackageVersions(profile);
 
     col = new CommandCollection(db, profile, config, new commander.Command(), inquirer,
-      servicePackages, servicePackageVersions);
+      servicePackages, servicePackageVersions, new ServiceCache(db));
   });
 
   it('should initialize', () => {

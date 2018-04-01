@@ -2,7 +2,6 @@ import { ServicePackageVersions } from '../../../services/package-versions/packa
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { ServiceDatabase } from '../../../services/database/database.service';
-import { Command } from 'commander';
 import * as inquirer from 'inquirer';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { SinonStub } from 'sinon';
@@ -11,6 +10,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { Answers, Question } from 'inquirer';
 import { IUnpublishAnswers } from './i-unpublish-answers';
+import { A } from '../../../shared/tests/builder/a';
 
 describe('CmdPublish', () => {
   let db: ServiceDatabase;
@@ -70,7 +70,13 @@ describe('CmdPublish', () => {
         return new Promise((resolve) => resolve());
       });
 
-    cmd = new CmdUnpublish(db, profile, config, new Command(), inquirer, servicePackages, servicePackageVersions);
+    cmd = A.command()
+      .withServiceDatabase(db)
+      .withModelProfile(profile)
+      .withModelUvpmConfig(config)
+      .withServicePackages(servicePackages)
+      .withServicePackageVersions(servicePackageVersions)
+      .build(CmdUnpublish);
   });
 
   beforeEach(() => {
@@ -102,7 +108,7 @@ describe('CmdPublish', () => {
     profile.token = undefined as any;
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.contain(errMsg);
+    expect(cmd.logError.lastEntry).to.contain(errMsg);
   });
 
   it('should fail if the server is not set', async () => {
@@ -111,7 +117,7 @@ describe('CmdPublish', () => {
     profile.server = null;
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.contain(errMsg);
+    expect(cmd.logError.lastEntry).to.contain(errMsg);
   });
 
   it('should fail if uvpm.json is not present', async () => {
@@ -120,19 +126,19 @@ describe('CmdPublish', () => {
     stubIsFile.get(() => false);
     await cmd.action();
 
-    expect(cmd.lastLogErr).to.contain(errMsg);
+    expect(cmd.logError.lastEntry).to.contain(errMsg);
   });
 
-  describe('uvpm unpublish', () => {
+  describe('uvpm unpublish package', () => {
     it('should fail when called', async () => {
       await cmd.action();
 
-      expect(cmd.lastLogErr).to.eq('You must call unpublish with a package and version,' +
+      expect(cmd.logError.lastEntry).to.eq('You must call unpublish with a package and version,' +
         ' "uvpm unpublish PACKAGE [VERSION]"');
     });
   });
 
-  describe('uvpm unpublish', () => {
+  describe('uvpm unpublish package [version]', () => {
     it('should ask the user if they want to delete the package', async () => {
       await cmd.action(config.name);
 
@@ -146,7 +152,7 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name);
 
-      expect(cmd.lastLogErr).to.eq('Package name was not confirmed');
+      expect(cmd.logError.lastEntry).to.eq('Package name was not confirmed');
     });
 
     it('should make the user type the name of the package to delete it', async () => {
@@ -154,7 +160,7 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name);
 
-      expect(cmd.lastLogErr).to.not.eq('Package name was not confirmed');
+      expect(cmd.logError.lastEntry).to.not.eq('Package name was not confirmed');
     });
 
     it('should ask the user if they\'re sure they want to delete the' +
@@ -171,13 +177,13 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name);
 
-      expect(cmd.lastLogErr).to.eq('Failed to unpublish. Did not receive a yes');
+      expect(cmd.logError.lastEntry).to.eq('Failed to unpublish. Did not receive a yes');
     });
 
     it('should make the user verify again by typing yes', async () => {
       await cmd.action(config.name);
 
-      expect(cmd.lastLogErr).to.not.be.ok;
+      expect(cmd.logError.lastEntry).to.not.be.ok;
     });
 
     it('should call the package delete service', async () => {
@@ -195,7 +201,7 @@ describe('CmdPublish', () => {
     it('should print a message upon successfully deleting the package', async () => {
       await cmd.action(config.name);
 
-      expect(cmd.lastLog).to.contain(`Package ${config.name} successfully deleted`);
+      expect(cmd.log.lastEntry).to.contain(`Package ${config.name} successfully deleted`);
     });
 
     it('should fail if the delete service returns an error', async () => {
@@ -210,7 +216,7 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name);
 
-      expect(cmd.lastLogErr).to.eq(errMsg);
+      expect(cmd.logError.lastEntry).to.eq(errMsg);
     });
   });
 
@@ -236,13 +242,13 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name, version);
 
-      expect(cmd.lastLogErr).to.eq('Package name was not confirmed');
+      expect(cmd.logError.lastEntry).to.eq('Package name was not confirmed');
     });
 
     it('should pass if the user answers with the package and version', async () => {
       await cmd.action(config.name, version);
 
-      expect(cmd.lastLogErr).to.not.be.ok;
+      expect(cmd.logError.lastEntry).to.not.be.ok;
     });
 
     it('should warn the user that this will delete the package version', async () => {
@@ -280,13 +286,13 @@ describe('CmdPublish', () => {
 
       await cmd.action(config.name, version);
 
-      expect(cmd.lastLogErr).to.eq(failMessage);
+      expect(cmd.logError.lastEntry).to.eq(failMessage);
     });
 
     it('should return a message upon success', async () => {
       await cmd.action(config.name, version);
 
-      expect(cmd.lastLog).to.contain(`Package ${config.name}@${version} successfully deleted`);
+      expect(cmd.log.lastEntry).to.contain(`Package ${config.name}@${version} successfully deleted`);
     });
   });
 });

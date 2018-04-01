@@ -44,7 +44,7 @@ export class CmdInit extends CmdBase {
   }
 
   protected onAction (): Promise<void> {
-    this.log(chalk.bold(`${ModelUvpmConfig.fileName} file generator`));
+    this.log.print(chalk.bold(`${ModelUvpmConfig.fileName} file generator`));
     return this.createAnswers();
   }
 
@@ -52,17 +52,17 @@ export class CmdInit extends CmdBase {
     return new Promise<void>((resolve, reject) => {
       this.inquirer.prompt(this.questions)
         .then((answers) => {
-          this.log(chalk.yellow('Generating file...'));
+          this.log.print(chalk.yellow('Generating file...'));
           return this.createConfig(answers as IUvpmConfig);
         })
         .then(() => {
-          this.log(chalk.green(`Created file ${ModelUvpmConfig.fileName} successfully`));
+          this.log.print(chalk.green(`Created file ${ModelUvpmConfig.fileName} successfully`));
           resolve();
         })
         .catch(/* istanbul ignore next */(err) => {
-          this.logErr(chalk.red(`Failed to generate ${ModelUvpmConfig.fileName}`));
-          this.logErr('Error Log:');
-          this.logErr(err);
+          this.logError.print(chalk.red(`Failed to generate ${ModelUvpmConfig.fileName}`));
+          this.logError.print('Error Log:');
+          this.logError.print(err);
 
           reject(err);
         });
