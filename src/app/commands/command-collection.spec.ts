@@ -52,6 +52,14 @@ describe('CommandCollection', () => {
 
         expect(match).to.be.ok;
       });
+
+      it('should inject the cache-clear command', () => {
+        const match = col.commandInstances.find((i) => {
+          return i.name.toLowerCase().includes('cache-clear');
+        });
+
+        expect(match).to.be.ok;
+      });
     });
 
     describe('generators', () => {
