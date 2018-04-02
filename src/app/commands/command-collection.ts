@@ -19,6 +19,8 @@ import { CmdPublish } from './publishing/publish/publish.cmd';
 import { CmdUnpublish } from './publishing/unpublish/unpublish.cmd';
 import { ICommandNew } from '../shared/interfaces/command/i-command-new';
 import { ServiceCache } from '../services/cache/cache.service';
+import { CmdInstall } from './dependencies/install/install.cmd';
+import { CmdUninstall } from './dependencies/uninstall/uninstall.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -32,6 +34,8 @@ export class CommandCollection {
     CmdVersion,
     CmdPublish,
     CmdUnpublish,
+    CmdInstall,
+    CmdUninstall,
   ];
 
   constructor (

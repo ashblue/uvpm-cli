@@ -34,6 +34,7 @@ describe('CmdInstall', () => {
 
   let stubIsFile: SinonStub;
   let stubFileRoot: SinonStub;
+  let stubConfigSave: SinonStub;
 
   beforeEach(async () => {
     db = new ServiceDatabase();
@@ -44,6 +45,7 @@ describe('CmdInstall', () => {
 
     config = new ModelUvpmConfig();
     config.name = 'my-project';
+    stubConfigSave = sinon.stub(config, 'save');
 
     servicePackages = new ServicePackages(profile);
     servicePackageVersions = new ServicePackageVersions(profile);
@@ -73,6 +75,8 @@ describe('CmdInstall', () => {
 
   afterEach(async () => {
     stubFileRoot.restore();
+    stubIsFile.restore();
+
     await unityProject.deleteProject();
   });
 
@@ -865,6 +869,14 @@ describe('CmdInstall', () => {
               await unityPackageAlt.deleteProject();
 
               expect(config.dependencies.packages.length).to.eq(1);
+            });
+
+            it('should call the config save method', async () => {
+              setPackageServiceGetResponse([unityPackage]);
+
+              await cmd.action(packageData.name);
+
+              expect(stubConfigSave.called).to.eq(true);
             });
           });
 

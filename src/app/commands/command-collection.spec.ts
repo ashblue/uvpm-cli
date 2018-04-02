@@ -36,6 +36,24 @@ describe('CommandCollection', () => {
   });
 
   describe('when initialized', () => {
+    describe('dependencies', () => {
+      it('should inject the install command', () => {
+        const match = col.commandInstances.find((i) => {
+          return i.name.toLowerCase().includes('install');
+        });
+
+        expect(match).to.be.ok;
+      });
+
+      it('should inject the install command', () => {
+        const match = col.commandInstances.find((i) => {
+          return i.name.toLowerCase().includes('uninstall');
+        });
+
+        expect(match).to.be.ok;
+      });
+    });
+
     describe('generators', () => {
       it('should inject an init command', () => {
         const match = col.commandInstances.find((i) => {

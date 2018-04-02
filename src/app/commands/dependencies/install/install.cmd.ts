@@ -12,7 +12,7 @@ import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-conf
 
 export class CmdInstall extends CmdBase {
   get name (): string {
-    return 'install [name]';
+    return 'install [package]';
   }
 
   get description (): string {
