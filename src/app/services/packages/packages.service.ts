@@ -1,6 +1,7 @@
 import { IPackage } from '../../shared/interfaces/packages/i-package';
 import axios, { AxiosRequestConfig } from 'axios';
 import { ModelProfile } from '../../models/profile/profile.model';
+import { IPackageSearchResult } from '../../shared/interfaces/packages/i-package-search-result';
 
 export class ServicePackages {
   constructor (private profile: ModelProfile) {
@@ -62,6 +63,23 @@ export class ServicePackages {
       })
         .then(() => {
           resolve();
+        })
+        .catch((err) => {
+          if (err && err.response && err.response.data) {
+            reject(err.response.data);
+            return;
+          }
+
+          reject(err);
+        });
+    });
+  }
+
+  public search (name: string): Promise<IPackageSearchResult[]> {
+    return new Promise<IPackageSearchResult[]>((resolve, reject) => {
+      axios.get(`${this.profile.server}/api/v1/packages/search/${name}`)
+        .then((response) => {
+          resolve(response.data as IPackageSearchResult[]);
         })
         .catch((err) => {
           if (err && err.response && err.response.data) {

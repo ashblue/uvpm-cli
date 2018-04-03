@@ -22,6 +22,8 @@ import { ServiceCache } from '../services/cache/cache.service';
 import { CmdInstall } from './dependencies/install/install.cmd';
 import { CmdUninstall } from './dependencies/uninstall/uninstall.cmd';
 import { CmdCacheClear } from './dependencies/cache-clear/cache-clear.cmd';
+import { CmdSearch } from './dependencies/search/search.cmd';
+import { CmdView } from './dependencies/view/view.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -38,6 +40,8 @@ export class CommandCollection {
     CmdInstall,
     CmdUninstall,
     CmdCacheClear,
+    CmdSearch,
+    CmdView,
   ];
 
   constructor (

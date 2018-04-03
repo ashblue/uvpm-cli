@@ -4,6 +4,7 @@ import { IPackage } from '../../shared/interfaces/packages/i-package';
 import { ModelProfile } from '../../models/profile/profile.model';
 import { ServiceDatabase } from '../database/database.service';
 import nock = require('nock');
+import { IPackageSearchResult } from '../../shared/interfaces/packages/i-package-search-result';
 
 describe('ServicePackage', () => {
   it('should initialize', () => {
@@ -325,6 +326,69 @@ describe('ServicePackage', () => {
 
         // Make sure nock was called at the assumed end point
         expect(result).to.not.be.ok;
+      });
+    });
+
+    describe('search', () => {
+      it('should return a promise with the search results by name', async () => {
+        const searchResult: IPackageSearchResult = {
+          name: packageName,
+          description: 'Once upon a time',
+          author: 'Ash Blue',
+          date: Date.now(),
+          version: '1.0.0',
+        };
+
+        modelProfile.server = server;
+        await modelProfile.save();
+
+        nock(server)
+          .get(`/api/v1/packages/search/${packageName}`)
+          .reply(200, searchResult);
+
+        const result = await packages.search(packageName);
+
+        expect(result).to.deep.eq(searchResult);
+      });
+
+      it('should fail if a non code based error triggers', async () => {
+        const errMsg = 'Unknown error';
+
+        modelProfile.server = server;
+        await modelProfile.save();
+
+        nock(modelProfile.server)
+          .get(`/api/v1/packages/search/${packageName}`)
+          .replyWithError(errMsg);
+
+        let err: any = null;
+        try {
+          await packages.search(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err.toString()).to.contain(errMsg);
+      });
+
+      it('should fail if the server returns an error code', async () => {
+        const errMsg = 'Not found';
+
+        modelProfile.server = server;
+        await modelProfile.save();
+
+        nock(server)
+          .get(`/api/v1/packages/search/${packageName}`)
+          .reply(404, errMsg);
+
+        let err: any = null;
+        try {
+          await packages.search(packageName);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.contain(errMsg);
       });
     });
   });

@@ -35,28 +35,42 @@ describe('CommandCollection', () => {
     expect(col).to.be.ok;
   });
 
+  function findCommand (commandName: string) {
+    const match = col.commandInstances.find((i) => {
+      return i.name.toLowerCase().includes(commandName);
+    });
+
+    return match;
+  }
+
   describe('when initialized', () => {
     describe('dependencies', () => {
       it('should inject the install command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('install');
-        });
+        const match = findCommand('install');
 
         expect(match).to.be.ok;
       });
 
       it('should inject the install command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('uninstall');
-        });
+        const match = findCommand('uninstall');
 
         expect(match).to.be.ok;
       });
 
       it('should inject the cache-clear command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('cache-clear');
-        });
+        const match = findCommand('cache-clear');
+
+        expect(match).to.be.ok;
+      });
+
+      it('should inject the search command', () => {
+        const match = findCommand('search');
+
+        expect(match).to.be.ok;
+      });
+
+      it('should inject the view command', () => {
+        const match = findCommand('view');
 
         expect(match).to.be.ok;
       });
@@ -64,9 +78,7 @@ describe('CommandCollection', () => {
 
     describe('generators', () => {
       it('should inject an init command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('init');
-        });
+        const match = findCommand('init');
 
         expect(match).to.be.ok;
       });
@@ -74,25 +86,19 @@ describe('CommandCollection', () => {
 
     describe('publishing', () => {
       it('should inject a version command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('version');
-        });
+        const match = findCommand('version');
 
         expect(match).to.be.ok;
       });
 
       it('should inject a publish command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('publish');
-        });
+        const match = findCommand('publish');
 
         expect(match).to.be.ok;
       });
 
       it('should inject an unpublish command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('unpublish');
-        });
+        const match = findCommand('unpublish');
 
         expect(match).to.be.ok;
       });
@@ -100,33 +106,25 @@ describe('CommandCollection', () => {
 
     describe('authentication', () => {
       it('should inject a login command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('login');
-        });
+        const match = findCommand('login');
 
         expect(match).to.be.ok;
       });
 
       it('should inject a logout command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('logout');
-        });
+        const match = findCommand('logout');
 
         expect(match).to.be.ok;
       });
 
       it('should inject a whoami command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('whoami');
-        });
+        const match = findCommand('whoami');
 
         expect(match).to.be.ok;
       });
 
       it('should inject a server command', () => {
-        const match = col.commandInstances.find((i) => {
-          return i.name.toLowerCase().includes('server');
-        });
+        const match = findCommand('server');
 
         expect(match).to.be.ok;
       });

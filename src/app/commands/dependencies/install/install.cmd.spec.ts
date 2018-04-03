@@ -112,8 +112,6 @@ describe('CmdInstall', () => {
 
       expect(cmd.logError.lastEntry).to.contain(errMsg);
     });
-
-    xit('should print an error if config.dependencies.outputFolder is missing');
   });
 
   describe('commands', () => {
