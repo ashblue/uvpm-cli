@@ -54,7 +54,15 @@ export class CmdPublish extends CmdBase {
           publishTarget,
         ];
 
-        const files = await CmdPublish.getAllFilesRecursively(folder);
+        let files: string[];
+        // istanbul ignore next
+        try {
+          files = await CmdPublish.getAllFilesRecursively(folder);
+        } catch (err) {
+          reject(err);
+          return;
+        }
+
         const blacklist = files.filter((f) => {
           const pathRelative = f.replace(`${folder}/`, '');
           const result = whitelist.find((w) => {
@@ -125,7 +133,14 @@ export class CmdPublish extends CmdBase {
 
       archive.pipe(output);
       archive.directory(sourceFolder, false);
-      await archive.finalize();
+
+      // istanbul ignore next
+      try {
+        await archive.finalize();
+      } catch (err) {
+        reject('Failed to finalize archive');
+        return;
+      }
     });
   }
 
@@ -201,7 +216,14 @@ export class CmdPublish extends CmdBase {
         return;
       }
 
-      const archive = await this.copyProjectToArchive();
+      let archive: string;
+      // istanbul ignore next
+      try {
+        archive = await this.copyProjectToArchive();
+      } catch (err) {
+        reject(err);
+        return;
+      }
 
       const packagedData: IPackage = {
         name: this.config.name,
@@ -249,14 +271,28 @@ export class CmdPublish extends CmdBase {
   }
 
   private copyProjectToArchive (): Promise<string> {
-    return new Promise<string>(async (resolve) => {
+    return new Promise<string>(async (resolve, reject) => {
       const tmpCopyPath = `${serviceTmp.tmpFolder}/${this.config.name}`;
       const tmpArchivePath = `${serviceTmp.tmpFolder}/archive.tar.gz`;
-      await this.copyProject(this.projectFolderPath, tmpCopyPath);
-      await this.cleanFolder(tmpCopyPath);
-      await CmdPublish.createArchive(tmpCopyPath, tmpArchivePath);
 
-      const result = fs.readFileSync(tmpArchivePath);
+      // istanbul ignore next
+      try {
+        await this.copyProject(this.projectFolderPath, tmpCopyPath);
+        await this.cleanFolder(tmpCopyPath);
+        await CmdPublish.createArchive(tmpCopyPath, tmpArchivePath);
+      } catch (err) {
+        reject(err);
+        return;
+      }
+
+      let result: Buffer;
+      // istanbul ignore next
+      try {
+        result = fs.readFileSync(tmpArchivePath);
+      } catch (err) {
+        reject(err);
+        return;
+      }
 
       resolve(result.toString());
     });
