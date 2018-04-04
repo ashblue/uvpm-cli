@@ -57,7 +57,7 @@ export class ExampleProject {
 
       const folder = tmp.dirSync();
       await this.createProject(folder.name);
-      await CmdPublish.cleanProject(folder.name, this.config.publishing.targetFolder);
+      await CmdPublish.cleanProject(folder.name, this.config.publishing.targetFolder, this.config);
       const archiveFile = `${folder.name}/${this.config.version}.tar.gz`;
       await CmdPublish.createArchive(folder.name, archiveFile);
       this._archive = archiveFile;

@@ -6,6 +6,7 @@ import rimraf = require('rimraf');
 import * as archiver from 'archiver';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { serviceTmp } from '../../../services/tmp/tmp.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 
 /**
  * @TODO Move file helper methods onto a helper class
@@ -40,7 +41,7 @@ export class CmdPublish extends CmdBase {
     return '.';
   }
 
-  public static async cleanProject (folder: string, publishTarget: string) {
+  public static async cleanProject (folder: string, publishTarget: string, config: ModelUvpmConfig) {
     return new Promise<void>(async (resolve, reject) => {
       if (!fs.existsSync(folder)) {
         reject(`Folder ${folder} does not exist`);
@@ -53,7 +54,7 @@ export class CmdPublish extends CmdBase {
           publishTarget,
         ];
 
-        const files = await this.getAllFilesRecursively(folder);
+        const files = await CmdPublish.getAllFilesRecursively(folder);
         const blacklist = files.filter((f) => {
           const pathRelative = f.replace(`${folder}/`, '');
           const result = whitelist.find((w) => {
@@ -61,6 +62,11 @@ export class CmdPublish extends CmdBase {
           });
 
           return !result;
+        });
+
+        config.publishing.ignore.forEach((f) => {
+          blacklist.push(`${folder}/${f}`);
+          blacklist.push(`${folder}/${f}.meta`);
         });
 
         blacklist.forEach((f) => {
@@ -90,7 +96,7 @@ export class CmdPublish extends CmdBase {
   }
 
   public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       const output = fs.createWriteStream(destinationFile);
       const archive = archiver('tar', {
         gzip: true,
@@ -119,7 +125,7 @@ export class CmdPublish extends CmdBase {
 
       archive.pipe(output);
       archive.directory(sourceFolder, false);
-      archive.finalize();
+      await archive.finalize();
     });
   }
 
@@ -164,7 +170,7 @@ export class CmdPublish extends CmdBase {
   public cleanFolder (folder: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        await CmdPublish.cleanProject(folder, this.config.publishing.targetFolder);
+        await CmdPublish.cleanProject(folder, this.config.publishing.targetFolder, this.config);
       } catch (message) {
         reject(message);
       }

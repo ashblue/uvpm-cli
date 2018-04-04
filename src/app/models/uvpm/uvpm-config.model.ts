@@ -11,9 +11,6 @@ export const configDefaults = Object.freeze({
   },
   publishing: {
     targetFolder: 'Assets',
-    ignore: [
-      'Assets/Plugins',
-    ],
   },
 });
 
@@ -38,7 +35,7 @@ export class ModelUvpmConfig implements IUvpmConfig {
 
   public publishing = {
     targetFolder: configDefaults.publishing.targetFolder,
-    ignore: configDefaults.publishing.ignore,
+    ignore: ['Assets/Plugins'],
     tests: new Array<string>(),
     examples: new Array<string>(),
     unityVersion: {

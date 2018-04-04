@@ -71,6 +71,14 @@ sysinfo.txt
     path: 'Assets/MyProject/Testing',
   },
   {
+    file: 'Ignore.cs',
+    path: 'Assets/MyProject/Ignore',
+  },
+  {
+    file: 'Ignore.meta',
+    path: 'Assets/MyProject',
+  },
+  {
     file: 'MyPlugin.cs',
     path: 'Assets/Plugins/MyPlugin',
   },

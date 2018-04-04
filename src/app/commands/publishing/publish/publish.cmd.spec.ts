@@ -49,13 +49,19 @@ describe('CmdPublish', () => {
   let stubIsFile: SinonStub;
 
   beforeEach(async () => {
+    tmpProjectFolder = tmp.dirSync();
+    unityProject = new ExampleProjectUnity();
+    await unityProject.createProject(tmpProjectFolder.name);
+    source = unityProject.root;
+    destination = `${serviceTmp.tmpFolder}/${unityProject.config.name}`;
+
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     profile.server = 'http://uvpm.com';
     profile.email = 'asdf@asdf.com';
     profile.token = '34l2j3jkl@34jkkj3';
 
-    config = new ModelUvpmConfig();
+    config = unityProject.config;
     config.name = 'my-project';
 
     servicePackages = new ServicePackages(profile);
@@ -71,15 +77,6 @@ describe('CmdPublish', () => {
       .withServicePackages(servicePackages)
       .withServicePackageVersions(servicePackageVersions)
       .build(CmdPublish);
-  });
-
-  beforeEach(async () => {
-    tmpProjectFolder = tmp.dirSync();
-    unityProject = new ExampleProjectUnity();
-    await unityProject.createProject(tmpProjectFolder.name);
-
-    source = unityProject.root;
-    destination = `${serviceTmp.tmpFolder}/${unityProject.config.name}`;
   });
 
   afterEach(() => {
@@ -348,6 +345,17 @@ describe('CmdPublish', () => {
       expect(targetFolder).to.be.ok;
       expect(files.length).to.eq(2);
       expect(targetFolderFiles.length > 1).to.be.ok;
+    });
+
+    it('should delete all ignored files with .meta from the project', async () => {
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+
+      const files = fs.readdirSync(`${destination}/Assets/MyProject`);
+
+      files.forEach((f) => {
+        expect(f).to.not.contain('Ignore');
+      });
     });
 
     it('should not copy the git directory over', async () => {
