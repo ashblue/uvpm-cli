@@ -50,11 +50,16 @@ export class CmdLogin extends CmdBase {
           // @TODO Wrap axios authentication commands into a service
           return axios.post(loginUrl, loginRequest);
         })
-        .then((response) => {
+        .then(async (response) => {
           const data = response.data as ILoginResponse;
           profile.token = data.token;
           profile.email = data.user.email;
-          return profile.save();
+
+          await profile.save();
+
+          this.logSuccess.print(`Successfully logged in as ${profile.email}`);
+
+          resolve();
         }, (reason) => {
           if (!reason.response) {
             reject(reason.toString());
@@ -62,10 +67,6 @@ export class CmdLogin extends CmdBase {
           }
 
           reject(reason.response.data);
-        })
-        .then(() => {
-          this.log.print(`Successfully logged in as ${profile.email}`);
-          resolve();
         });
     });
   }

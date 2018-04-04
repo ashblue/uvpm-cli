@@ -80,82 +80,97 @@ describe('CmdLogin', () => {
     await cmd.action();
     await profile.load();
 
-    expect(cmd.log.history[0]).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
-    expect(cmd.log.history[1]).to.contain(`Successfully logged in as ${profile.email}`);
+    expect(cmd.log.lastEntry).to.contain(`Logging into "${profile.server}/api/v1/users/login"`);
+    expect(cmd.logSuccess.lastEntry).to.contain(`Successfully logged in as ${profile.email}`);
 
     await profile.load();
     expect(profile.email).to.eq(login.email);
     expect(profile.isToken).to.be.ok;
   });
 
-  it('should print an error if the user fails to login (401)', async () => {
+  describe('failure', () => {
     const login: ILoginRequest = {
       email: 'asdf@asdf.com',
       password: 'Asdf1234',
     };
 
-    stubInquirer.answers = login;
+    beforeEach(async () => {
+      stubInquirer.answers = login;
 
-    profile.server = 'http://testapp.com';
-    await profile.save();
+      profile.server = 'http://testapp.com';
+      await profile.save();
+    });
 
-    const loginResponse: IUvpmError = {
-      message: 'Not authenticated',
-    };
+    it('should print an error if the user fails to login (401)', async () => {
+      const loginResponse: IUvpmError = {
+        message: 'Not authenticated',
+      };
 
-    nock(`${profile.server}`)
-      .post(`/api/v1/users/login`, login)
-      .reply(401, loginResponse);
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .reply(401, loginResponse);
 
-    await cmd.action();
-    expect(JSON.stringify(cmd.logError.lastEntry)).to.contain(loginResponse.message);
+      await cmd.action();
+      expect(JSON.stringify(cmd.logError.lastEntry)).to.contain(loginResponse.message);
 
-    await profile.load();
-    expect(profile.email).to.eq(null);
-    expect(profile.isToken).to.be.not.ok;
-  });
+      await profile.load();
+      expect(profile.email).to.eq(null);
+      expect(profile.isToken).to.be.not.ok;
+    });
 
-  it('should print an error if the server fails to respond (500)', async () => {
-    const login: ILoginRequest = {
-      email: 'asdf@asdf.com',
-      password: 'Asdf1234',
-    };
+    it('should print an error if the server fails to respond (500)', async () => {
+      const loginResponse = 'server failed to process response';
 
-    stubInquirer.answers = login;
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .replyWithError(loginResponse);
 
-    profile.server = 'http://testapp.com';
-    await profile.save();
+      await cmd.action();
+      expect(cmd.logError.lastEntry).to.contain(loginResponse);
 
-    const loginResponse = 'server failed to process response';
+      await profile.load();
+      expect(profile.email).to.eq(null);
+      expect(profile.isToken).to.be.not.ok;
+    });
 
-    nock(`${profile.server}`)
-      .post(`/api/v1/users/login`, login)
-      .replyWithError(loginResponse);
+    it('should print an error if the server does not exist', async () => {
+      await cmd.action();
+      expect(cmd.logError.lastEntry).to.be.ok;
 
-    await cmd.action();
-    expect(cmd.logError.lastEntry).to.contain(loginResponse);
+      await profile.load();
+      expect(profile.email).to.eq(null);
+      expect(profile.isToken).to.be.not.ok;
+    });
 
-    await profile.load();
-    expect(profile.email).to.eq(null);
-    expect(profile.isToken).to.be.not.ok;
-  });
+    it('should not print a success message on failure', async () => {
+      const loginResponse: IUvpmError = {
+        message: 'Not authenticated',
+      };
 
-  it('should print an error if the server does not exist', async () => {
-    const login: ILoginRequest = {
-      email: 'asdf@asdf.com',
-      password: 'Asdf1234',
-    };
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .reply(401, loginResponse);
 
-    stubInquirer.answers = login;
+      await cmd.action();
 
-    profile.server = 'http://testapp.com';
-    await profile.save();
+      expect(cmd.logSuccess.lastEntry).to.not.be.ok;
+    });
 
-    await cmd.action();
-    expect(cmd.logError.lastEntry).to.be.ok;
+    it('should print the exact error text to the console', async () => {
+      const loginResponse: any = {
+        message: 'Not authenticated',
+        nestedData: {
+          myText: 'Nested text',
+        },
+      };
 
-    await profile.load();
-    expect(profile.email).to.eq(null);
-    expect(profile.isToken).to.be.not.ok;
+      nock(`${profile.server}`)
+        .post(`/api/v1/users/login`, login)
+        .reply(401, loginResponse);
+
+      await cmd.action();
+
+      expect(cmd.logError.lastEntry).to.eq(JSON.stringify(loginResponse));
+    });
   });
 });

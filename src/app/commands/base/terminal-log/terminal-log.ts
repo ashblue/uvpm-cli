@@ -19,7 +19,12 @@ export class TerminalLog {
   }
 
   /* istanbul ignore next: floods the test runner with logs */
-  public print (text: string) {
+  public print (text: any|string) {
+    // Force convert invalid strings
+    if (typeof text !== 'string') {
+      text = JSON.stringify(text);
+    }
+
     if (appConfig.isEnvTest) {
       this._history.push(text);
       return;
