@@ -12,7 +12,7 @@ import { Answers, Question } from 'inquirer';
 import { IUnpublishAnswers } from './i-unpublish-answers';
 import { A } from '../../../shared/tests/builder/a';
 
-describe('CmdPublish', () => {
+describe('CmdUnpublish', () => {
   let db: ServiceDatabase;
   let profile: ModelProfile;
   let config: ModelUvpmConfig;
@@ -133,8 +133,8 @@ describe('CmdPublish', () => {
     it('should fail when called', async () => {
       await cmd.action();
 
-      expect(cmd.logError.lastEntry).to.eq('You must call unpublish with a package and version,' +
-        ' "uvpm unpublish PACKAGE [VERSION]"');
+      expect(cmd.logError.lastEntry).to.eq(
+        'You must call unpublish with a package and optional version, "uvpm unpublish [PACKAGE] [VERSION]"');
     });
   });
 
@@ -161,23 +161,6 @@ describe('CmdPublish', () => {
       await cmd.action(config.name);
 
       expect(cmd.logError.lastEntry).to.not.eq('Package name was not confirmed');
-    });
-
-    it('should ask the user if they\'re sure they want to delete the' +
-      ' entire package and all version data', async () => {
-      await cmd.action(config.name);
-
-      const questionArgs = stubInquirer.getCall(0).args[0][1] as Question;
-
-      expect(questionArgs).to.deep.eq(questions[1]);
-    });
-
-    it('should fail if the user does not confirm again by typing yes', async () => {
-      answers.confirmYes = '';
-
-      await cmd.action(config.name);
-
-      expect(cmd.logError.lastEntry).to.eq('Failed to unpublish. Did not receive a yes');
     });
 
     it('should make the user verify again by typing yes', async () => {
@@ -249,16 +232,6 @@ describe('CmdPublish', () => {
       await cmd.action(config.name, version);
 
       expect(cmd.logError.lastEntry).to.not.be.ok;
-    });
-
-    it('should warn the user that this will delete the package version', async () => {
-      questions[1].message = 'This will delete the package version. Are you sure you want' +
-        ' to do this? Type yes to continue';
-
-      await cmd.action(config.name, version);
-      const questionArgs = stubInquirer.getCall(0).args[0][1] as Question;
-
-      expect(questionArgs).to.deep.eq(questions[1]);
     });
 
     it('should call the ServicePackageVersions.delete command', async () => {
