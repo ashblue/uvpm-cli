@@ -17,9 +17,9 @@ export class CmdVersion extends CmdBase {
   }
 
   get description (): string {
-    return `Set a new version directly "uvpm version 1.0.1".
-      Or increment the current version "uvpm version major|minor|patch" as so "uvpm version minor".
-      Versioning is based upon the Semantic Versioning specification. See semver.org to learn more.`;
+    return 'Set a new version directly \"uvpm version 1.0.1\".'
+      + ' Or increment the current version \"uvpm version major|minor|patch\" as so \"uvpm version minor\".'
+      + ' Version numbers based upon the Semantic Versioning specification. See semver.org to learn more.';
   }
 
   // istanbul ignore next: Stubbed during testing
