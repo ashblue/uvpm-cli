@@ -289,10 +289,12 @@ export class CmdInstall extends CmdBase {
 
     if (!packageData.examples) {
       rimraf.sync(`${packagePath}/${existingConfig.publishing.examples}`);
+      rimraf.sync(`${packagePath}/${existingConfig.publishing.examples}.meta`);
     }
 
     if (!packageData.tests) {
       rimraf.sync(`${packagePath}/${existingConfig.publishing.tests}`);
+      rimraf.sync(`${packagePath}/${existingConfig.publishing.tests}.meta`);
     }
   }
 

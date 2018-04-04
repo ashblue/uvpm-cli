@@ -67,8 +67,16 @@ sysinfo.txt
     path: 'Assets/MyProject/Examples',
   },
   {
+    file: 'Examples.meta',
+    path: 'Assets/MyProject',
+  },
+  {
     file: 'MyTest.cs',
     path: 'Assets/MyProject/Testing',
+  },
+  {
+    file: 'Testing.meta',
+    path: 'Assets/MyProject',
   },
   {
     file: 'Ignore.cs',

@@ -947,10 +947,12 @@ describe('CmdInstall', () => {
 
             await cmd.action(packageData.name);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.examples}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.be.ok;
+            ['Examples', 'Examples.meta'].forEach((f) => {
+              expect(files).to.contain(f);
+            });
           });
 
           it('should not install examples if set to false in the config', async () => {
@@ -960,10 +962,12 @@ describe('CmdInstall', () => {
 
             await cmd.action(packageData.name);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.examples}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.not.be.ok;
+            ['Examples', 'Examples.meta'].forEach((f) => {
+              expect(files).to.not.contain(f);
+            });
           });
         });
 
@@ -1006,10 +1010,12 @@ describe('CmdInstall', () => {
 
             await cmd.action(packageData.name);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.tests}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.be.ok;
+            ['Testing', 'Testing.meta'].forEach((f) => {
+              expect(files).to.contain(f);
+            });
           });
 
           it('should not install tests if set to false in the config', async () => {
@@ -1019,10 +1025,12 @@ describe('CmdInstall', () => {
 
             await cmd.action(packageData.name);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.tests}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.not.be.ok;
+            ['Testing', 'Testing.meta'].forEach((f) => {
+              expect(files).to.not.contain(f);
+            });
           });
         });
       });
