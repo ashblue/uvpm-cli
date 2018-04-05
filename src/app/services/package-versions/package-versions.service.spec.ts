@@ -27,7 +27,7 @@ describe('ServicePackageVersions', () => {
 
     versionExample = {
       name: '1.0.0',
-      archive: `${server}/${packageName}/archive.gz.tar`,
+      archive: `${packageName}/archive.gz.tar`,
     };
   });
 
