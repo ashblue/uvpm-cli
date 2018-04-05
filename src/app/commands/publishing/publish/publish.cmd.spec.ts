@@ -19,6 +19,7 @@ import { ServicePackages } from '../../../services/packages/packages.service';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import { A } from '../../../shared/tests/builder/a';
+import * as mkdirp from 'mkdirp';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -352,7 +353,12 @@ describe('CmdPublish', () => {
 
   describe('cleanFolder', () => {
     it('should delete all files except the publishing.targetFolder and uvpm.json', async () => {
-      await cmd.copyProject(source, destination);
+      const sourceTarget = `${source}/${unityProject.config.publishing.targetFolder}`;
+      const destinationTarget = `${destination}/${unityProject.config.publishing.targetFolder}`;
+
+      mkdirp.sync(destinationTarget);
+      await cmd.copyProject(sourceTarget, destinationTarget);
+      await cmd.copyProject(`${source}/uvpm.json`, `${destination}/uvpm.json`);
       await cmd.cleanFolder(destination);
 
       const files = fs.readdirSync(destination);
@@ -375,13 +381,6 @@ describe('CmdPublish', () => {
       files.forEach((f) => {
         expect(f).to.not.contain('Ignore');
       });
-    });
-
-    it('should not copy the git directory over', async () => {
-      await cmd.copyProject(source, destination);
-      await cmd.cleanFolder(destination);
-
-      expect(fs.existsSync(`${destination}/.git`)).to.not.be.ok;
     });
 
     it('should fail if the source does not exist', async () => {

@@ -59,7 +59,7 @@ export class ExampleProject {
       this._root = folder.name;
 
       await this.createProject();
-      await CmdPublish.cleanProject(folder.name, this.config.publishing.targetFolder, this.config);
+      await CmdPublish.cleanProject(folder.name, this.config);
       const archiveFile = `${folder.name}/${this.config.version}.tar.gz`;
       await CmdPublish.createArchive(folder.name, archiveFile);
       this._archive = archiveFile;
