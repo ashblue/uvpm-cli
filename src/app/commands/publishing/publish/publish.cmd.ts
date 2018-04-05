@@ -87,7 +87,8 @@ export class CmdPublish extends CmdBase {
       stream.on('close', () => resolve());
 
       tar.create({
-        gzip: true,
+        // @NOTE Files cannot be gziped as it corrupts them at the server level
+        gzip: false,
         cwd: sourceFolder,
       }, ['.'])
         .pipe(stream);
