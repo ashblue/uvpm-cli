@@ -440,5 +440,40 @@ describe('CmdPublish', () => {
         expect(match).to.be.ok;
       });
     });
+
+    it('should have the same files and folders when convert to string, then file, then turned back', async () => {
+      const archiveSource = `${destination}`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
+
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+      const copiedFiles = await getFiles(destination);
+      expect(copiedFiles).to.be.ok;
+      expect(copiedFiles.length).to.be.greaterThan(1);
+
+      await CmdPublish.createArchive(archiveSource, archiveDestination);
+
+      const archiveString = fs.readFileSync(archiveDestination);
+      const tmpArchive = tmp.fileSync().name;
+      fs.writeFileSync(tmpArchive, archiveString);
+
+      fs.mkdirSync(unarchiveDestination);
+      await tar.extract({
+        file: tmpArchive,
+        cwd: unarchiveDestination,
+      });
+      const extractedFiles = await getFiles(unarchiveDestination);
+
+      copiedFiles.forEach((f) => {
+        const path = f.replace(archiveSource, '');
+        const match = extractedFiles.find((fAlt) => {
+          const cleanPath = fAlt.replace(unarchiveDestination, '');
+          return path === cleanPath;
+        });
+
+        expect(match).to.be.ok;
+      });
+    });
   });
 });
