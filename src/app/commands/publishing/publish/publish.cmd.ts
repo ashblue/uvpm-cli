@@ -7,6 +7,7 @@ import * as archiver from 'archiver';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { serviceTmp } from '../../../services/tmp/tmp.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import mkdirp = require('mkdirp');
 
 /**
  * @TODO Move file helper methods onto a helper class
@@ -153,7 +154,7 @@ export class CmdPublish extends CmdBase {
           return;
         }
 
-        resolve(res.concat(res));
+        resolve(res);
       });
     });
   }
@@ -273,12 +274,15 @@ export class CmdPublish extends CmdBase {
   private copyProjectToArchive (): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
       const tmpCopyPath = `${serviceTmp.tmpFolder}/${this.config.name}`;
+      const tmpCopyTargetPath = `${tmpCopyPath}/${this.config.publishing.targetFolder}`;
       const tmpArchivePath = `${serviceTmp.tmpFolder}/archive.tar.gz`;
 
       // istanbul ignore next
       try {
-        await this.copyProject(this.projectFolderPath, tmpCopyPath);
+        mkdirp.sync(tmpCopyTargetPath);
+        await this.copyProject(`${this.projectFolderPath}/${this.config.publishing.targetFolder}`, tmpCopyTargetPath);
         await this.cleanFolder(tmpCopyPath);
+        await this.copyProject(`${this.projectFolderPath}/uvpm.json`, `${tmpCopyPath}/uvpm.json`);
         await CmdPublish.createArchive(tmpCopyPath, tmpArchivePath);
       } catch (err) {
         reject(err);

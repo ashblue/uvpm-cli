@@ -1,25 +1,31 @@
-import * as fs from 'fs';
-import * as rimraf from 'rimraf';
+import * as tmp from 'tmp';
+import { SynchrounousResult } from 'tmp';
+import rimraf = require('rimraf');
 
 /**
  * Generate and clear .tmp folder
  */
 export class ServiceTmp {
-  private _tmpFolder = '.tmp';
+  private _tmpFolder: SynchrounousResult|undefined;
 
-  public get tmpFolder () {
-    return this._tmpFolder;
+  public get tmpFolder (): string {
+    if (this._tmpFolder) {
+      return this._tmpFolder.name;
+    }
+
+    return '';
   }
 
   public create () {
     this.clear();
 
-    fs.mkdirSync(this.tmpFolder);
+    this._tmpFolder = tmp.dirSync();
   }
 
   public clear () {
-    if (fs.existsSync(this.tmpFolder)) {
+    if (this._tmpFolder) {
       rimraf.sync(this.tmpFolder);
+      this._tmpFolder = undefined;
     }
   }
 }

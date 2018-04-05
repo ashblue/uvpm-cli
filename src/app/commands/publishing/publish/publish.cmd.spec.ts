@@ -51,7 +51,8 @@ describe('CmdPublish', () => {
   beforeEach(async () => {
     tmpProjectFolder = tmp.dirSync();
     unityProject = new ExampleProjectUnity();
-    await unityProject.createProject(tmpProjectFolder.name);
+    unityProject.root = tmpProjectFolder.name;
+    await unityProject.createProject();
     source = unityProject.root;
     destination = `${serviceTmp.tmpFolder}/${unityProject.config.name}`;
 
@@ -145,6 +146,24 @@ describe('CmdPublish', () => {
 
       expect(cmd.logError.lastEntry).to.not.be.ok;
       expect(cmd.log.lastEntry).to.eq(successMessage);
+    });
+
+    it('should dump the correct files in the root when unpacked', async () => {
+      const expectedFiles = ['Assets', 'uvpm.json'];
+
+      await cmd.action();
+
+      const archiveDump = tmp.dirSync();
+      await tar.extract({
+        file: `${serviceTmp.tmpFolder}/archive.tar.gz`,
+        cwd: archiveDump.name,
+      });
+
+      const unpackedRoot = fs.readdirSync(archiveDump.name);
+
+      rimraf.sync(archiveDump.name);
+
+      expect(unpackedRoot).to.deep.eq(expectedFiles);
     });
 
     it('should fail if a uvpm.json file is not present', async () => {

@@ -15,8 +15,9 @@ describe('ServiceTmp', () => {
     expect(serviceTmp).to.be.ok;
   });
 
-  it('should provide the tmpFolder path', () => {
-    expect(serviceTmp.tmpFolder).to.eq('.tmp');
+  it('should provide a tmpFolder path', () => {
+    serviceTmp.create();
+    expect(serviceTmp.tmpFolder).to.be.ok;
   });
 
   describe('create', () => {
@@ -30,7 +31,7 @@ describe('ServiceTmp', () => {
       const path = `${serviceTmp.tmpFolder}/hello-world.txt`;
 
       serviceTmp.create();
-      fs.writeFileSync(path, 'Hello world');
+      fs.writeFileSync(`${serviceTmp.tmpFolder}/hello-world.txt`, 'Hello world');
       serviceTmp.create();
 
       expect(fs.existsSync(serviceTmp.tmpFolder)).to.be.ok;
