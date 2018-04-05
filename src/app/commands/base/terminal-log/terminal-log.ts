@@ -21,8 +21,12 @@ export class TerminalLog {
   /* istanbul ignore next: floods the test runner with logs */
   public print (text: any|string) {
     // Force convert invalid strings
-    if (typeof text !== 'string') {
-      text = JSON.stringify(text);
+    try {
+      if (typeof text !== 'string') {
+        text = JSON.stringify(text);
+      }
+    } catch {
+      // Do nothing since we will display the text as normal
     }
 
     if (appConfig.isEnvTest) {
