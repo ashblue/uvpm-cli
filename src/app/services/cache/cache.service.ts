@@ -101,6 +101,6 @@ export class ServiceCache {
 
   public async clear () {
     rimraf.sync(ServiceCache.cachePath);
-    await this.serviceDatabase.destroy();
+    await this.serviceDatabase.cache.destroy();
   }
 }
