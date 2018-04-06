@@ -7,7 +7,12 @@ import rimraf = require('rimraf');
 import { ICachePackageVersion } from '../../shared/interfaces/cache/i-cache-package-version';
 
 export class ServiceCache {
+  // istanbul ignore next
   public static get cachePath () {
+    if (appConfig.isEnvTest) {
+      return `${appConfig.folderRoot}/.cache-test`;
+    }
+
     return `${appConfig.folderRoot}/.cache`;
   }
 
