@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { CmdUninstall } from './uninstall.cmd';
+import { CmdUninstall, ICmdUninstallOptions } from './uninstall.cmd';
 import { A } from '../../../shared/tests/builder/a';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
@@ -150,30 +150,32 @@ describe('CmdUninstall', () => {
       });
 
       describe('flag --save', () => {
+        let flags: ICmdUninstallOptions = {};
+
         beforeEach(async () => {
-          program.save = true;
+          flags = { save: true };
         });
 
         it('should remove the package from the config file', async () => {
-          await cmd.action(packageName);
+          await cmd.action(packageName, flags);
 
           expect(config.dependencies.packages.find((p) => p.name === packageName)).to.not.be.ok;
         });
 
         it('should save the config file', async () => {
-          await cmd.action(packageName);
+          await cmd.action(packageName, flags);
 
           expect(stubConfigSave.called).to.eq(true);
         });
 
         it('should print a message that the uvpm.json file is updated', async () => {
-          await cmd.action(packageName);
+          await cmd.action(packageName, flags);
 
           expect(cmd.log.history).to.contain('uvpm.json file successfully updated');
         });
 
         it('should print a message that a re-install is triggering', async () => {
-          await cmd.action(packageName);
+          await cmd.action(packageName, flags);
 
           expect(cmd.log.history).to.contain('Updating installed dependencies...');
         });
@@ -183,7 +185,7 @@ describe('CmdUninstall', () => {
             return new Promise((resolve) => resolve());
           });
 
-          await cmd.action(packageName);
+          await cmd.action(packageName, flags);
 
           spyCmdInstallAction.restore();
 

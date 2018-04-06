@@ -10,7 +10,7 @@ import { ICmdOption } from '../../base/i-cmd-option';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
 import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
-interface ICmdInstallOptions {
+export interface ICmdInstallOptions {
   save?: boolean;
   examples?: boolean;
   tests?: boolean;
@@ -156,11 +156,6 @@ export class CmdInstall extends CmdBase {
 
         if (!installedVersion) {
           continue;
-        }
-
-        if (installedVersion.name !== pack.version) {
-          this.logWarning.print(`Version ${pack.version} not found for package ${pack.name}.`
-            + ` Installed version ${installedVersion.name} instead`);
         }
 
         const depConfig = await this.getInstalledPackageConfig(pack.name);

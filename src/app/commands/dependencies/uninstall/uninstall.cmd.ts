@@ -5,7 +5,7 @@ import { ICmdOption } from '../../base/i-cmd-option';
 import { CmdInstall } from '../install/install.cmd';
 import { A } from '../../../shared/tests/builder/a';
 
-interface ICmdUninstallOptions {
+export interface ICmdUninstallOptions {
   save?: boolean;
 }
 
