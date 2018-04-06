@@ -10,7 +10,15 @@ import { ICmdOption } from '../../base/i-cmd-option';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
 import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
+interface ICmdInstallOptions {
+  save?: boolean;
+  examples?: boolean;
+  tests?: boolean;
+}
+
 export class CmdInstall extends CmdBase {
+  private _options: ICmdInstallOptions = {};
+
   get name (): string {
     return 'install [package]';
   }
@@ -22,17 +30,17 @@ export class CmdInstall extends CmdBase {
   protected get options (): ICmdOption[] {
     return [
       {
-        flags: '--save, -s',
+        flags: '-s, --save',
         description: 'Save the newly installed package to the config',
         defaultValue: false,
       },
       {
-        flags: '--examples, -e',
+        flags: '-e, --examples',
         description: 'Include examples with the package',
         defaultValue: false,
       },
       {
-        flags: '--tests, -t',
+        flags: '-t, --tests',
         description: 'Include tests with the package',
         defaultValue: false,
       },
@@ -56,7 +64,11 @@ export class CmdInstall extends CmdBase {
     return true;
   }
 
-  protected onAction (packageName?: string): Promise<void> {
+  protected onAction (packageName?: string, options?: ICmdInstallOptions): Promise<void> {
+    if (options) {
+      this._options = options;
+    }
+
     return new Promise<void>(async (resolve, reject) => {
       if (!packageName) {
         try {
@@ -83,14 +95,14 @@ export class CmdInstall extends CmdBase {
     await this.installPackage({
       name: packageName,
       version: undefined as any,
-      examples: this.program.examples,
-      tests: this.program.tests,
+      examples: this._options.examples,
+      tests: this._options.tests,
     });
 
     const config = await this.getInstalledPackageConfig(packageName);
     await this.installPackageList(config);
 
-    if (this.program.save) {
+    if (this._options.save) {
       await this.writePackageToConfig(config);
     }
   }
@@ -115,17 +127,17 @@ export class CmdInstall extends CmdBase {
       version: `^${packageConfig.version.toString()}`,
     };
 
-    if (this.program.examples) {
+    if (this._options.examples) {
       entry.examples = true;
     }
 
-    if (this.program.tests) {
+    if (this._options.tests) {
       entry.tests = true;
     }
 
     this.config.dependencies.packages.push(entry);
 
-    await this.config.save(this.fileRoot);
+    await this.config.save();
   }
 
   /**

@@ -60,7 +60,7 @@ export class ModelUvpmConfig implements IUvpmConfig {
     Object.assign(this, override);
   }
 
-  public save (output = './'): Promise<void> {
+  public save (output = '.'): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const location = `${output}/${ModelUvpmConfig.fileName}`;
       fs.writeFile(location, JSON.stringify(this, null, 2), (err) => {
