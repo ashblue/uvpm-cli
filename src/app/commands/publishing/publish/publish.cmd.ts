@@ -1,16 +1,19 @@
 import { CmdBase } from '../../base/base.cmd';
 import { ncp } from 'ncp';
-import * as glob from 'glob';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
-import * as archiver from 'archiver';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { serviceTmp } from '../../../services/tmp/tmp.service';
+import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
+import mkdirp = require('mkdirp');
+import * as tarFs from 'tar-fs';
 
 /**
  * @TODO Move file helper methods onto a helper class
  */
 export class CmdPublish extends CmdBase {
+  public static ARCHIVE_NAME = 'archive.tar';
+
   get name (): string {
     return 'publish';
   }
@@ -40,7 +43,7 @@ export class CmdPublish extends CmdBase {
     return '.';
   }
 
-  public static async cleanProject (folder: string, publishTarget: string) {
+  public static async cleanProject (folder: string, config: ModelUvpmConfig) {
     return new Promise<void>(async (resolve, reject) => {
       if (!fs.existsSync(folder)) {
         reject(`Folder ${folder} does not exist`);
@@ -48,19 +51,10 @@ export class CmdPublish extends CmdBase {
       }
 
       try {
-        const whitelist: string[] = [
-          'uvpm.json',
-          publishTarget,
-        ];
-
-        const files = await this.getAllFilesRecursively(folder);
-        const blacklist = files.filter((f) => {
-          const pathRelative = f.replace(`${folder}/`, '');
-          const result = whitelist.find((w) => {
-            return pathRelative.substr(0, w.length) === w;
-          });
-
-          return !result;
+        const blacklist: string[] = [];
+        config.publishing.ignore.forEach((f) => {
+          blacklist.push(`${folder}/${f}`);
+          blacklist.push(`${folder}/${f}.meta`);
         });
 
         blacklist.forEach((f) => {
@@ -70,12 +64,10 @@ export class CmdPublish extends CmdBase {
 
           const fileDetails = fs.lstatSync(f);
 
-          // If a file
           if (fileDetails.isFile()) {
             fs.unlinkSync(f);
           }
 
-          // If a folder rimraf it
           if (fileDetails.isDirectory()) {
             rimraf.sync(f);
           }
@@ -89,51 +81,26 @@ export class CmdPublish extends CmdBase {
     });
   }
 
-  public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const output = fs.createWriteStream(destinationFile);
-      const archive = archiver('tar', {
-        gzip: true,
-        gzipOptions: {
-          level: 9,
-        },
-        zlib: {
-          level: 9,
-        },
-      });
+  public static extractArchive (archiveFile: string, dumpFolder: string) {
+    return new Promise((resolve, reject) => {
+      const extractor = tarFs.extract(dumpFolder);
+      extractor.on('finish', resolve);
+      extractor.on('error', reject);
 
-      output.on('close', () => resolve());
-
-      // istanbul ignore next
-      archive.on('error', (err) => reject(err));
-
-      // istanbul ignore next
-      archive.on('warning', (err) => {
-        if (err.code === 'ENOENT') {
-          console.warn(err);
-          return;
-        }
-
-        reject(err);
-      });
-
-      archive.pipe(output);
-      archive.directory(sourceFolder, false);
-      archive.finalize();
+      fs.createReadStream(archiveFile).pipe(extractor);
     });
   }
 
-  private static getAllFilesRecursively (folder: string): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) => {
-      glob(`${folder}/**/*`, { dot: true }, (err, res) => {
-        // istanbul ignore if
-        if (err) {
-          reject(err);
-          return;
-        }
+  public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      const stream = fs.createWriteStream(destinationFile);
+      stream.on('error', reject);
+      stream.on('close', resolve);
 
-        resolve(res.concat(res));
-      });
+      const packer = tarFs.pack(sourceFolder);
+      packer.on('error', reject);
+
+      packer.pipe(stream);
     });
   }
 
@@ -164,9 +131,10 @@ export class CmdPublish extends CmdBase {
   public cleanFolder (folder: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        await CmdPublish.cleanProject(folder, this.config.publishing.targetFolder);
+        await CmdPublish.cleanProject(folder, this.config);
       } catch (message) {
         reject(message);
+        return;
       }
 
       resolve();
@@ -195,7 +163,14 @@ export class CmdPublish extends CmdBase {
         return;
       }
 
-      const archive = await this.copyProjectToArchive();
+      let archive: string;
+      // istanbul ignore next
+      try {
+        archive = await this.copyProjectToArchive();
+      } catch (err) {
+        reject(err);
+        return;
+      }
 
       const packagedData: IPackage = {
         name: this.config.name,
@@ -243,16 +218,33 @@ export class CmdPublish extends CmdBase {
   }
 
   private copyProjectToArchive (): Promise<string> {
-    return new Promise<string>(async (resolve) => {
+    return new Promise<string>(async (resolve, reject) => {
       const tmpCopyPath = `${serviceTmp.tmpFolder}/${this.config.name}`;
-      const tmpArchivePath = `${serviceTmp.tmpFolder}/archive.tar.gz`;
-      await this.copyProject(this.projectFolderPath, tmpCopyPath);
-      await this.cleanFolder(tmpCopyPath);
-      await CmdPublish.createArchive(tmpCopyPath, tmpArchivePath);
+      const tmpCopyTargetPath = `${tmpCopyPath}/${this.config.publishing.targetFolder}`;
+      const tmpArchiveFilePath = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
 
-      const result = fs.readFileSync(tmpArchivePath);
+      // istanbul ignore next
+      try {
+        mkdirp.sync(tmpCopyTargetPath);
+        await this.copyProject(`${this.projectFolderPath}/${this.config.publishing.targetFolder}`, tmpCopyTargetPath);
+        await this.cleanFolder(tmpCopyPath);
+        await this.copyProject(`${this.projectFolderPath}/uvpm.json`, `${tmpCopyPath}/uvpm.json`);
+        await CmdPublish.createArchive(tmpCopyPath, tmpArchiveFilePath);
+      } catch (err) {
+        reject(err);
+        return;
+      }
 
-      resolve(result.toString());
+      let result: Buffer;
+      // istanbul ignore next
+      try {
+        result = fs.readFileSync(tmpArchiveFilePath);
+      } catch (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(result.toString('base64'));
     });
   }
 }

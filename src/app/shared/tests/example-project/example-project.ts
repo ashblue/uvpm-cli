@@ -1,5 +1,4 @@
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
-import { serviceTmp } from '../../../services/tmp/tmp.service';
 import * as fs from 'fs';
 import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
 import { IFile } from './i-file';
@@ -13,7 +12,7 @@ import { CmdPublish } from '../../../commands/publishing/publish/publish.cmd';
  */
 export class ExampleProject {
   public config: ModelUvpmConfig;
-  private _root: string|undefined;
+  private _root: string;
   private _archive: string|undefined;
 
   public get archive (): string {
@@ -21,11 +20,15 @@ export class ExampleProject {
   }
 
   public get root (): string {
-    if (this._root) {
-      return this._root;
+    if (!this._root) {
+      this._root = `${tmp.dirSync().name}/${this.config.name}`;
     }
 
-    return `${serviceTmp.tmpFolder}/${this.config.name}`;
+    return this._root;
+  }
+
+  public set root (val: string) {
+    this._root = val;
   }
 
   constructor (
@@ -35,11 +38,8 @@ export class ExampleProject {
     this.config = new ModelUvpmConfig(config);
   }
 
-  public createProject (root?: string): Promise<void> {
+  public createProject (): Promise<void> {
     return new Promise<void>(async (resolve) => {
-      this._root = root;
-
-      serviceTmp.create();
       mkdirp.sync(this.root);
       await this.config.save(`${this.root}`);
       this.createFiles(this.files);
@@ -56,10 +56,11 @@ export class ExampleProject {
       }
 
       const folder = tmp.dirSync();
-      await this.createProject(folder.name);
-      await CmdPublish.cleanProject(folder.name, this.config.publishing.targetFolder);
-      const archiveFile = `${folder.name}/${this.config.version}.tar.gz`;
-      await CmdPublish.createArchive(folder.name, archiveFile);
+
+      await this.createProject();
+      await CmdPublish.cleanProject(folder.name, this.config);
+      const archiveFile = `${folder.name}/${CmdPublish.ARCHIVE_NAME}`;
+      await CmdPublish.createArchive(this.root, archiveFile);
       this._archive = archiveFile;
 
       resolve();

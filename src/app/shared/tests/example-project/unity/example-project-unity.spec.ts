@@ -3,6 +3,7 @@ import * as chai from 'chai';
 import * as fs from 'fs';
 import { IFile } from '../i-file';
 import { unityExampleProjectFiles } from './unity-example-project-files';
+import * as tmp from 'tmp';
 
 const expect = chai.expect;
 
@@ -29,6 +30,12 @@ describe('ExampleProjectUnity', () => {
     const example = new ExampleProjectUnity();
 
     expect(example).to.be.ok;
+  });
+
+  it('should generate a default root if nothing has been assigned', () => {
+    const example = new ExampleProjectUnity();
+
+    expect(example.root).to.be.ok;
   });
 
   it('should inject a default config file for the project', () => {
@@ -61,6 +68,7 @@ describe('ExampleProjectUnity', () => {
 
   it('should generate a Unity project', async () => {
     const example = new ExampleProjectUnity();
+    example.root = tmp.dirSync().name;
     await example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles);
@@ -78,6 +86,7 @@ describe('ExampleProjectUnity', () => {
       newFiles,
     );
 
+    example.root = tmp.dirSync().name;
     await example.createProject();
 
     verifyFiles(example.root, unityExampleProjectFiles.concat(newFiles));

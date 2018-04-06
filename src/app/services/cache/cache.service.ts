@@ -7,7 +7,12 @@ import rimraf = require('rimraf');
 import { ICachePackageVersion } from '../../shared/interfaces/cache/i-cache-package-version';
 
 export class ServiceCache {
+  // istanbul ignore next
   public static get cachePath () {
+    if (appConfig.isEnvTest) {
+      return `${appConfig.folderRoot}/.cache-test`;
+    }
+
     return `${appConfig.folderRoot}/.cache`;
   }
 
@@ -16,7 +21,7 @@ export class ServiceCache {
 
   public set (name: string, version: string, filePath: string): Promise<ICachePackage> {
     return new Promise<ICachePackage>((resolve, reject) => {
-      const fileName = `${name}-${version}.tar.gz`;
+      const fileName = `${name}-${version}.tar`;
       const folder = `${ServiceCache.cachePath}/${name}/${version}`;
       const fileCopyPath = `${folder}/${fileName}`;
 
@@ -29,6 +34,7 @@ export class ServiceCache {
 
       const writeStream = fs.createWriteStream(fileCopyPath);
 
+      writeStream.on('error', reject);
       writeStream.on('close', async () => {
         try {
           const existingPackage = await this.getPackage(name);
@@ -101,6 +107,6 @@ export class ServiceCache {
 
   public async clear () {
     rimraf.sync(ServiceCache.cachePath);
-    await this.serviceDatabase.destroy();
+    await this.serviceDatabase.cache.destroy();
   }
 }

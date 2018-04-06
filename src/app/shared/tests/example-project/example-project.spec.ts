@@ -3,7 +3,7 @@ import { ExampleProject } from './example-project';
 import * as fs from 'fs';
 import { IUvpmConfig } from '../../interfaces/uvpm/config/i-uvpm-config';
 import { IFile } from './i-file';
-import { serviceTmp } from '../../../services/tmp/tmp.service';
+import * as tmp from 'tmp';
 
 const expect = chai.expect;
 
@@ -39,9 +39,10 @@ describe('ExampleProject', () => {
   describe('createProject', () => {
     it('should allow overriding the root', async () => {
       const example = new ExampleProject(defaultConfig);
-      const path = `${serviceTmp.tmpFolder}/nested-folder/${example.config.name}`;
+      const path = `${tmp.dirSync().name}/nested-folder/${example.config.name}`;
 
-      await example.createProject(path);
+      example.root = path;
+      await example.createProject();
 
       expect(example).to.be.ok;
       expect(fs.existsSync(path)).to.be.ok;
@@ -49,22 +50,21 @@ describe('ExampleProject', () => {
 
     it('should use the uvpm.json package name as the folder root name', async () => {
       const example = new ExampleProject(defaultConfig);
-      const path = `${example.root}`;
 
+      example.root = tmp.dirSync().name;
       await example.createProject();
 
-      expect(example).to.be.ok;
-      expect(fs.existsSync(path)).to.be.ok;
+      expect(fs.existsSync(example.root)).to.be.ok;
     });
 
     it('should spawn a uvpm.json file in the root', async () => {
       const example = new ExampleProject(defaultConfig);
-      const path = `${example.root}/uvpm.json`;
 
+      example.root = tmp.dirSync().name;
       await example.createProject();
 
       expect(example).to.be.ok;
-      expect(fs.existsSync(path)).to.be.ok;
+      expect(fs.existsSync(`${example.root}/uvpm.json`)).to.be.ok;
     });
   });
 
@@ -95,6 +95,7 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [fileRoot, fileRootSibling, fileInFolder, fileNested];
     const example = new ExampleProject(defaultConfig, files);
+    example.root = tmp.dirSync().name;
     await example.createProject();
 
     verifyFiles(example.root, files);
@@ -117,6 +118,7 @@ describe('ExampleProject', () => {
 
     const files: IFile[] = [file, fileContent, filePath];
     const example = new ExampleProject(defaultConfig, files);
+    example.root = tmp.dirSync().name;
     await example.createProject();
 
     verifyFiles(example.root, files);

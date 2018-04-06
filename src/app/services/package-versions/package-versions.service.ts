@@ -90,7 +90,7 @@ export class ServicePackageVersions {
       const tmpFile = tmp.fileSync();
 
       const file = fs.createWriteStream(tmpFile.name);
-      http.get(packageData.archive, (response) => {
+      http.get(`${this.profile.server}/${packageData.archive}`, (response) => {
         response.pipe(file);
       }).on('error', (err) => {
         reject(err);

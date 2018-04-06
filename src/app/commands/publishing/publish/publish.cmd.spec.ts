@@ -11,7 +11,6 @@ import { serviceTmp } from '../../../services/tmp/tmp.service';
 import { unityExampleProjectFiles } from '../../../shared/tests/example-project/unity/unity-example-project-files';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import * as glob from 'glob';
-import * as tar from 'tar';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
@@ -19,6 +18,7 @@ import { ServicePackages } from '../../../services/packages/packages.service';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import { A } from '../../../shared/tests/builder/a';
+import * as mkdirp from 'mkdirp';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -49,13 +49,20 @@ describe('CmdPublish', () => {
   let stubIsFile: SinonStub;
 
   beforeEach(async () => {
+    tmpProjectFolder = tmp.dirSync();
+    unityProject = new ExampleProjectUnity();
+    unityProject.root = tmpProjectFolder.name;
+    await unityProject.createProject();
+    source = unityProject.root;
+    destination = `${serviceTmp.tmpFolder}/${unityProject.config.name}`;
+
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     profile.server = 'http://uvpm.com';
     profile.email = 'asdf@asdf.com';
     profile.token = '34l2j3jkl@34jkkj3';
 
-    config = new ModelUvpmConfig();
+    config = unityProject.config;
     config.name = 'my-project';
 
     servicePackages = new ServicePackages(profile);
@@ -71,15 +78,6 @@ describe('CmdPublish', () => {
       .withServicePackages(servicePackages)
       .withServicePackageVersions(servicePackageVersions)
       .build(CmdPublish);
-  });
-
-  beforeEach(async () => {
-    tmpProjectFolder = tmp.dirSync();
-    unityProject = new ExampleProjectUnity();
-    await unityProject.createProject(tmpProjectFolder.name);
-
-    source = unityProject.root;
-    destination = `${serviceTmp.tmpFolder}/${unityProject.config.name}`;
   });
 
   afterEach(() => {
@@ -150,6 +148,21 @@ describe('CmdPublish', () => {
       expect(cmd.log.lastEntry).to.eq(successMessage);
     });
 
+    it('should dump the correct files in the root when unpacked', async () => {
+      const expectedFiles = ['Assets', 'uvpm.json'];
+      const archiveDump = tmp.dirSync();
+
+      await cmd.action();
+
+      const archive = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
+      await CmdPublish.extractArchive(archive, archiveDump.name);
+
+      const unpackedRoot = fs.readdirSync(archiveDump.name);
+      rimraf.sync(archiveDump.name);
+
+      expect(unpackedRoot).to.deep.eq(expectedFiles);
+    });
+
     it('should fail if a uvpm.json file is not present', async () => {
       const errMsg = 'Please create a uvpm.json file';
 
@@ -200,7 +213,8 @@ describe('CmdPublish', () => {
       it('should receive the package data with the archive', async () => {
         await cmd.action();
 
-        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
+        unityPackageData.versions[0].archive =
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString('base64');
 
         const callArgs = stubPackageCreate.args[0][0] as any;
         expect(callArgs.name).to.eq(config.name);
@@ -236,7 +250,8 @@ describe('CmdPublish', () => {
       it('should receive the package data with the archive', async () => {
         await cmd.action();
 
-        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
+        unityPackageData.versions[0].archive =
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString('base64');
 
         const packageName: string = stubPackageVersionsAdd.args[0][0] as any;
         const version: IPackageVersion = stubPackageVersionsAdd.args[0][1] as any;
@@ -336,7 +351,12 @@ describe('CmdPublish', () => {
 
   describe('cleanFolder', () => {
     it('should delete all files except the publishing.targetFolder and uvpm.json', async () => {
-      await cmd.copyProject(source, destination);
+      const sourceTarget = `${source}/${unityProject.config.publishing.targetFolder}`;
+      const destinationTarget = `${destination}/${unityProject.config.publishing.targetFolder}`;
+
+      mkdirp.sync(destinationTarget);
+      await cmd.copyProject(sourceTarget, destinationTarget);
+      await cmd.copyProject(`${source}/uvpm.json`, `${destination}/uvpm.json`);
       await cmd.cleanFolder(destination);
 
       const files = fs.readdirSync(destination);
@@ -350,11 +370,15 @@ describe('CmdPublish', () => {
       expect(targetFolderFiles.length > 1).to.be.ok;
     });
 
-    it('should not copy the git directory over', async () => {
+    it('should delete all ignored files with .meta from the project', async () => {
       await cmd.copyProject(source, destination);
       await cmd.cleanFolder(destination);
 
-      expect(fs.existsSync(`${destination}/.git`)).to.not.be.ok;
+      const files = fs.readdirSync(`${destination}/Assets/MyProject`);
+
+      files.forEach((f) => {
+        expect(f).to.not.contain('Ignore');
+      });
     });
 
     it('should fail if the source does not exist', async () => {
@@ -372,7 +396,7 @@ describe('CmdPublish', () => {
   describe('createArchive', () => {
     it('should turn the passed folder into an archive at the destination', async () => {
       const archiveSource = `${destination}`;
-      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
 
       await cmd.copyProject(source, destination);
       await cmd.cleanFolder(destination);
@@ -383,7 +407,7 @@ describe('CmdPublish', () => {
 
     it('should have the same files and folders when unarchived', async () => {
       const archiveSource = `${destination}`;
-      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
       const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
 
       await cmd.copyProject(source, destination);
@@ -396,12 +420,41 @@ describe('CmdPublish', () => {
 
       // Unzip the archive
       fs.mkdirSync(unarchiveDestination);
-      await tar.extract({
-        file: archiveDestination,
-        cwd: unarchiveDestination,
-      });
+      await CmdPublish.extractArchive(archiveDestination, unarchiveDestination);
       const extractedFiles = await getFiles(unarchiveDestination);
       expect(extractedFiles).to.be.ok;
+
+      copiedFiles.forEach((f) => {
+        const path = f.replace(archiveSource, '');
+        const match = extractedFiles.find((fAlt) => {
+          const cleanPath = fAlt.replace(unarchiveDestination, '');
+          return path === cleanPath;
+        });
+
+        expect(match).to.be.ok;
+      });
+    });
+
+    it('should have the same files and folders when convert to string, then file, then turned back', async () => {
+      const archiveSource = `${destination}`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
+      const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
+
+      await cmd.copyProject(source, destination);
+      await cmd.cleanFolder(destination);
+      const copiedFiles = await getFiles(destination);
+      expect(copiedFiles).to.be.ok;
+      expect(copiedFiles.length).to.be.greaterThan(1);
+
+      await CmdPublish.createArchive(archiveSource, archiveDestination);
+
+      const archiveString = fs.readFileSync(archiveDestination);
+      const tmpArchive = tmp.fileSync().name;
+      fs.writeFileSync(tmpArchive, archiveString);
+
+      fs.mkdirSync(unarchiveDestination);
+      await CmdPublish.extractArchive(tmpArchive, unarchiveDestination);
+      const extractedFiles = await getFiles(unarchiveDestination);
 
       copiedFiles.forEach((f) => {
         const path = f.replace(archiveSource, '');

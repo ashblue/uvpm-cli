@@ -19,6 +19,7 @@ export class ExampleProjectUnity extends ExampleProject {
 
     defaultConfig.publishing.tests.push('Assets/MyProject/Testing');
     defaultConfig.publishing.examples.push('Assets/MyProject/Examples');
+    defaultConfig.publishing.ignore.push('Assets/MyProject/Ignore');
     defaultConfig.publishing.unityVersion.min = '5.6';
 
     if (configOverride) {

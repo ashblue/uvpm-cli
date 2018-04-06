@@ -1,7 +1,6 @@
 import { CmdBase } from '../../base/base.cmd';
 import mkdirp = require('mkdirp');
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
-import * as tar from 'tar';
 import { ModelVersion } from '../../../models/version/version.model';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import * as fs from 'fs';
@@ -9,8 +8,17 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import rimraf = require('rimraf');
 import { ICmdOption } from '../../base/i-cmd-option';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
+import { CmdPublish } from '../../publishing/publish/publish.cmd';
+
+export interface ICmdInstallOptions {
+  save?: boolean;
+  examples?: boolean;
+  tests?: boolean;
+}
 
 export class CmdInstall extends CmdBase {
+  private _options: ICmdInstallOptions = {};
+
   get name (): string {
     return 'install [package]';
   }
@@ -22,17 +30,17 @@ export class CmdInstall extends CmdBase {
   protected get options (): ICmdOption[] {
     return [
       {
-        flags: '--save, -s',
+        flags: '-s, --save',
         description: 'Save the newly installed package to the config',
         defaultValue: false,
       },
       {
-        flags: '--examples, -e',
+        flags: '-e, --examples',
         description: 'Include examples with the package',
         defaultValue: false,
       },
       {
-        flags: '--tests, -t',
+        flags: '-t, --tests',
         description: 'Include tests with the package',
         defaultValue: false,
       },
@@ -56,7 +64,11 @@ export class CmdInstall extends CmdBase {
     return true;
   }
 
-  protected onAction (packageName?: string): Promise<void> {
+  protected onAction (packageName?: string, options?: ICmdInstallOptions): Promise<void> {
+    if (options) {
+      this._options = options;
+    }
+
     return new Promise<void>(async (resolve, reject) => {
       if (!packageName) {
         try {
@@ -83,14 +95,14 @@ export class CmdInstall extends CmdBase {
     await this.installPackage({
       name: packageName,
       version: undefined as any,
-      examples: this.program.examples,
-      tests: this.program.tests,
+      examples: this._options.examples,
+      tests: this._options.tests,
     });
 
-    const config = this.getInstalledPackageConfig(packageName);
+    const config = await this.getInstalledPackageConfig(packageName);
     await this.installPackageList(config);
 
-    if (this.program.save) {
+    if (this._options.save) {
       await this.writePackageToConfig(config);
     }
   }
@@ -115,17 +127,17 @@ export class CmdInstall extends CmdBase {
       version: `^${packageConfig.version.toString()}`,
     };
 
-    if (this.program.examples) {
+    if (this._options.examples) {
       entry.examples = true;
     }
 
-    if (this.program.tests) {
+    if (this._options.tests) {
       entry.tests = true;
     }
 
     this.config.dependencies.packages.push(entry);
 
-    await this.config.save(this.fileRoot);
+    await this.config.save();
   }
 
   /**
@@ -146,12 +158,7 @@ export class CmdInstall extends CmdBase {
           continue;
         }
 
-        if (installedVersion.name !== pack.version) {
-          this.logWarning.print(`Version ${pack.version} not found for package ${pack.name}.`
-            + ` Installed version ${installedVersion.name} instead`);
-        }
-
-        const depConfig = this.getInstalledPackageConfig(pack.name);
+        const depConfig = await this.getInstalledPackageConfig(pack.name);
         await this.installPackageList(depConfig);
 
       } catch (err) {
@@ -160,11 +167,19 @@ export class CmdInstall extends CmdBase {
     }
   }
 
-  private getInstalledPackageConfig (packageName: string) {
-    const outputFolder = `${this.fileRoot}/${this.config.dependencies.outputFolder}/${packageName}/uvpm.json`;
-    const configText = fs.readFileSync(outputFolder).toString();
+  private getInstalledPackageConfig (packageName: string): Promise<ModelUvpmConfig> {
+    return new Promise<ModelUvpmConfig>((resolve, reject) => {
+      const configFile = `${this.fileRoot}/${this.config.dependencies.outputFolder}/${packageName}/uvpm.json`;
 
-    return new ModelUvpmConfig(JSON.parse(configText));
+      let configText: string = '';
+      try {
+        configText = fs.readFileSync(configFile).toString();
+      } catch (err) {
+        reject(err);
+      }
+
+      resolve(new ModelUvpmConfig(JSON.parse(configText)));
+    });
   }
 
   private installPackage (packageDetails: IUvpmPackage): Promise<IPackageVersion> {
@@ -194,7 +209,11 @@ export class CmdInstall extends CmdBase {
       const targetVersion = this.findTargetVersion(packageVersion, packageDetails, packageData);
 
       let archiveTmp: string|undefined;
+      let isCacheArchive = false;
       archiveTmp = await this.getArchiveFromCache(packageName, targetVersion.name);
+      if (archiveTmp) {
+        isCacheArchive = true;
+      }
 
       if (!archiveTmp) {
         try {
@@ -208,16 +227,26 @@ export class CmdInstall extends CmdBase {
       if (this.isPackageInstalled(packageName)) {
         this.logWarning.print(`Duplicate package ${packageName} detected`);
 
-        const existingConfig = await this.getInstalledPackageConfig(packageName);
+        try {
+          const existingConfig = await this.getInstalledPackageConfig(packageName);
 
-        // istanbul ignore else: Need to write a test for the else scenario
-        if (new ModelVersion(targetVersion.name).isNewerVersion(existingConfig.version)) {
-          this.logWarning
-            .print(`Installing ${packageName} version ${targetVersion.name} and deleting ${existingConfig.version}`);
+          // istanbul ignore else: Need to write a test for the else scenario
+          if (new ModelVersion(targetVersion.name).isNewerVersion(existingConfig.version)) {
+            this.logWarning
+              .print(`Installing ${packageName} version ${targetVersion.name} and deleting ${existingConfig.version}`);
+            rimraf.sync(`${this.fileRoot}/${this.config.dependencies.outputFolder}/${packageName}`);
+          } else {
+            resolve();
+            return;
+          }
+        } catch (err) {
+          // istanbul ignore next: Helps detect a possible error that could drigger due to malformed package installs
+          this.logError.print('Failed package upgrade detected. Deleting package instead and re-installing.' +
+            ' Error details:');
+          // istanbul ignore next
+          this.logError.print(err);
+          // istanbul ignore next
           rimraf.sync(`${this.fileRoot}/${this.config.dependencies.outputFolder}/${packageName}`);
-        } else {
-          resolve();
-          return;
         }
       }
 
@@ -225,17 +254,16 @@ export class CmdInstall extends CmdBase {
       mkdirp.sync(outputFolder);
 
       // Unpack the archive into the new directory
-      await tar.extract({
-        file: archiveTmp,
-        cwd: outputFolder,
-      });
+      await CmdPublish.extractArchive(archiveTmp, outputFolder);
 
       await this.cleanPackageFiles(outputFolder, packageDetails);
 
-      try {
-        await this.serviceCache.set(packageName, targetVersion.name, archiveTmp);
-      } catch (err) {
-        this.logError.print(`Cache Error: ${err}`);
+      if (!isCacheArchive) {
+        try {
+          await this.serviceCache.set(packageName, targetVersion.name, archiveTmp);
+        } catch (err) {
+          this.logError.print(`Cache Error: ${err}`);
+        }
       }
 
       resolve(targetVersion);
@@ -282,17 +310,24 @@ export class CmdInstall extends CmdBase {
 
   private async cleanPackageFiles (packagePath: string, packageData: IUvpmPackage) {
     if (!fs.existsSync(`${packagePath}/uvpm.json`)) {
+      this.logError.print('Installed package does not have a uvpm.json file. Did not clean the directory');
       return;
     }
 
     const existingConfig: ModelUvpmConfig = await this.getInstalledPackageConfig(packageData.name);
 
     if (!packageData.examples) {
-      rimraf.sync(`${packagePath}/${existingConfig.publishing.examples}`);
+      existingConfig.publishing.examples.forEach((exampleRelativePath) => {
+        rimraf.sync(`${packagePath}/${exampleRelativePath}`);
+        rimraf.sync(`${packagePath}/${exampleRelativePath}.meta`);
+      });
     }
 
     if (!packageData.tests) {
-      rimraf.sync(`${packagePath}/${existingConfig.publishing.tests}`);
+      existingConfig.publishing.tests.forEach((testRelativePath) => {
+        rimraf.sync(`${packagePath}/${testRelativePath}`);
+        rimraf.sync(`${packagePath}/${testRelativePath}.meta`);
+      });
     }
   }
 

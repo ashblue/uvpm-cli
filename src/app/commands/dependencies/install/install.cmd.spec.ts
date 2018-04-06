@@ -3,7 +3,7 @@ import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
-import { CmdInstall } from './install.cmd';
+import { CmdInstall, ICmdInstallOptions } from './install.cmd';
 import { Command } from 'commander';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
@@ -12,13 +12,13 @@ import rimraf = require('rimraf');
 import * as fs from 'fs';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import * as glob from 'glob';
-import * as tar from 'tar';
 import { A } from '../../../shared/tests/builder/a';
 import { ExampleProjectUnity } from '../../../shared/tests/example-project/unity/example-project-unity';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
 import * as tmp from 'tmp';
 import { ServiceCache } from '../../../services/cache/cache.service';
+import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
 // @TODO Break this file into two files. One for each install command variation
 describe('CmdInstall', () => {
@@ -236,56 +236,12 @@ describe('CmdInstall', () => {
           expect(outputFiles).to.contain(packageData.name);
         });
 
-        it('should have the same number of files as the archive in the output folder', async () => {
-          program.examples = true;
-          program.tests = true;
-
-          const archivePackage = await A.unityPackage()
-            .withName(packageData.name)
-            .build();
-
-          const archiveFiles = await new Promise<string[]>((resolve, reject) => {
-            const filePathGlob = `${archivePackage.root}/**/!(*.tar.gz)`;
-            glob(filePathGlob, { dot: true }, (err, result) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve(result);
-            });
-          });
-
-          setPackageServiceGetResponse([archivePackage]);
-
-          await cmd.action(packageData.name);
-
-          const installedFiles = await new Promise<string[]>((resolve, reject) => {
-            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar.gz)`;
-            glob(getFileGlob, { dot: true }, (err, result) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve(result);
-            });
-          });
-
-          await archivePackage.deleteProject();
-
-          expect(archiveFiles.length).to.eq(installedFiles.length);
-        });
-
         it('should unpack the archive files into the named output folder', async () => {
-          program.examples = true;
-          program.tests = true;
-
           const archivePackage = await A.unityPackage()
             .withName(packageData.name)
             .build();
           const archiveFiles = await new Promise<string[]>((resolve, reject) => {
-            const filePathGlob = `${archivePackage.root}/**/!(*.tar.gz)`;
+            const filePathGlob = `${archivePackage.root}/**/!(*.tar)`;
             glob(filePathGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);
@@ -302,10 +258,13 @@ describe('CmdInstall', () => {
             return path.replace(archivePackage.root, '');
           });
 
-          await cmd.action(packageData.name);
+          await cmd.action(packageData.name, {
+            examples: true,
+            tests: true,
+          });
 
           const installedFiles = await new Promise<string[]>((resolve, reject) => {
-            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar.gz)`;
+            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar)`;
             glob(getFileGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);
@@ -320,6 +279,10 @@ describe('CmdInstall', () => {
 
           relativePackageFiles.forEach((packageFile) => {
             const result = installedFiles.find((file) => {
+              if (packageFile.includes('Example') || packageFile.includes('Test')) {
+                return true;
+              }
+
               const fileRelative = file.replace(`${outputLocation}/${archivePackage.config.name}`, '');
               return fileRelative === packageFile;
             });
@@ -329,7 +292,7 @@ describe('CmdInstall', () => {
         });
 
         it('should install the latest version of the package', async () => {
-          const stubTarExtract = sinon.stub(tar, 'extract');
+          const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive');
           stubTarExtract.returns(new Promise((resolve) => resolve()));
 
           const archivePackage = await A.unityPackage()
@@ -348,7 +311,31 @@ describe('CmdInstall', () => {
 
           stubTarExtract.restore();
 
-          expect(stubTarExtract.args[0][0].file).to.eq(archivePackageNewer.archive);
+          expect(stubTarExtract.args[0][0]).to.eq(archivePackageNewer.archive);
+        });
+
+        it('should install the latest version of the package over an older version', async () => {
+          const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive').callThrough();
+
+          const archivePackage = await A.unityPackage()
+            .withName(packageData.name)
+            .withVersion('1.0.0')
+            .build();
+
+          const archivePackageNewer = await A.unityPackage()
+            .withName(packageData.name)
+            .withVersion('1.2.0')
+            .build();
+
+          setPackageServiceGetResponse([archivePackage]);
+          await cmd.action(packageData.name);
+
+          setPackageServiceGetResponse([archivePackage, archivePackageNewer]);
+          await cmd.action(packageData.name);
+
+          stubTarExtract.restore();
+
+          expect(stubTarExtract.args[1][0]).to.eq(archivePackageNewer.archive);
         });
 
         describe('http archive downloads', () => {
@@ -583,32 +570,6 @@ describe('CmdInstall', () => {
             });
 
             describe('not found', () => {
-              it('should fire a warning if a specific version cannot be found', async () => {
-                const depName = 'dep-a';
-                const fakeVersion = '3.0.0';
-                const errMsg = `Version ${fakeVersion} not found for package ${depName}.`
-                  + ` Installed version 1.0.0 instead`;
-
-                const dep = await A.unityPackage()
-                  .withName('dep-a')
-                  .withVersion('1.0.0')
-                  .build();
-
-                const unityPackage = await A.unityPackage()
-                  .withDependency(dep.config.name, fakeVersion)
-                  .withName(packageData.name)
-                  .build();
-
-                setPackageServiceGetResponse([dep, unityPackage]);
-
-                await cmd.action(packageData.name);
-
-                await dep.deleteProject();
-                await unityPackage.deleteProject();
-
-                expect(cmd.logWarning.lastEntry).to.eq(errMsg);
-              });
-
               it('should install the latest if a specific version cannot be found', async () => {
                 const depName = 'dep-a';
                 const fakeVersion = '1.0.0';
@@ -782,9 +743,10 @@ describe('CmdInstall', () => {
 
       describe('flags', () => {
         let unityPackage: ExampleProjectUnity;
+        let flags: ICmdInstallOptions = {};
 
         beforeEach(async () => {
-          program.save = true;
+          flags = { save: true };
 
           unityPackage = await A.unityPackage()
             .withName(packageData.name)
@@ -805,7 +767,7 @@ describe('CmdInstall', () => {
 
               setPackageServiceGetResponse([unityPackage]);
 
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               expect(config.dependencies.packages).to.deep.include.members([addedPackage]);
             });
@@ -823,7 +785,7 @@ describe('CmdInstall', () => {
 
               setPackageServiceGetResponse([unityPackage, unityPackageAlt]);
 
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               await unityPackageAlt.deleteProject();
 
@@ -842,10 +804,10 @@ describe('CmdInstall', () => {
               };
 
               setPackageServiceGetResponse([unityPackage]);
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               setPackageServiceGetResponse([unityPackage, unityPackageAlt]);
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               await unityPackageAlt.deleteProject();
 
@@ -859,10 +821,10 @@ describe('CmdInstall', () => {
                 .build();
 
               setPackageServiceGetResponse([unityPackage]);
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               setPackageServiceGetResponse([unityPackage, unityPackageAlt]);
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               await unityPackageAlt.deleteProject();
 
@@ -872,7 +834,7 @@ describe('CmdInstall', () => {
             it('should call the config save method', async () => {
               setPackageServiceGetResponse([unityPackage]);
 
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               expect(stubConfigSave.called).to.eq(true);
             });
@@ -887,7 +849,7 @@ describe('CmdInstall', () => {
 
               setPackageServiceGetResponse([unityPackage]);
 
-              await cmd.action(packageData.name);
+              await cmd.action(packageData.name, flags);
 
               expect(config.dependencies.packages).to.not.deep.include.members([addedPackage]);
             });
@@ -896,7 +858,7 @@ describe('CmdInstall', () => {
               setPackageServiceGetResponse([]);
 
               try {
-                await cmd.action(packageData.name);
+                await cmd.action(packageData.name, flags);
               } finally {
                 const configPath = `${unityProject.root}/uvpm.json`;
                 const configText = fs.readFileSync(configPath).toString();
@@ -910,7 +872,7 @@ describe('CmdInstall', () => {
 
         describe('examples', () => {
           it('should set examples to true in the config if set', async () => {
-            program.examples = true;
+            flags.examples = true;
 
             const addedPackage: IUvpmPackage = {
               name: unityPackage.config.name,
@@ -920,13 +882,13 @@ describe('CmdInstall', () => {
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
             expect(config.dependencies.packages).to.deep.include.members([addedPackage]);
           });
 
           it('should set examples to false in the config if not set', async () => {
-            program.examples = false;
+            flags.examples = false;
 
             const addedPackage: IUvpmPackage = {
               name: unityPackage.config.name,
@@ -935,41 +897,45 @@ describe('CmdInstall', () => {
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
             expect(config.dependencies.packages).to.deep.include.members([addedPackage]);
           });
 
           it('should install examples if set to true in the config', async () => {
-            program.examples = true;
+            flags.examples = true;
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.examples}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.be.ok;
+            ['Examples', 'Examples.meta'].forEach((f) => {
+              expect(files).to.contain(f);
+            });
           });
 
           it('should not install examples if set to false in the config', async () => {
-            program.examples = false;
+            flags.examples = false;
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.examples}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.not.be.ok;
+            ['Examples', 'Examples.meta'].forEach((f) => {
+              expect(files).to.not.contain(f);
+            });
           });
         });
 
         describe('tests', () => {
           it('should set tests to true in the config if set', async () => {
-            program.tests = true;
+            flags.tests = true;
 
             const addedPackage: IUvpmPackage = {
               name: unityPackage.config.name,
@@ -979,13 +945,13 @@ describe('CmdInstall', () => {
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
             expect(config.dependencies.packages).to.deep.include.members([addedPackage]);
           });
 
           it('should set tests to false in the config if not set', async () => {
-            program.tests = false;
+            flags.tests = false;
 
             const addedPackage: IUvpmPackage = {
               name: unityPackage.config.name,
@@ -994,35 +960,39 @@ describe('CmdInstall', () => {
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
             expect(config.dependencies.packages).to.deep.include.members([addedPackage]);
           });
 
           it('should install tests if set to true in the config', async () => {
-            program.tests = true;
+            flags.tests = true;
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.tests}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.be.ok;
+            ['Testing', 'Testing.meta'].forEach((f) => {
+              expect(files).to.contain(f);
+            });
           });
 
           it('should not install tests if set to false in the config', async () => {
-            program.tests = false;
+            flags.tests = false;
 
             setPackageServiceGetResponse([unityPackage]);
 
-            await cmd.action(packageData.name);
+            await cmd.action(packageData.name, flags);
 
-            const examplePath = `${outputLocation}/${unityPackage.config.name}` +
-              `/${unityPackage.config.publishing.tests}`;
+            const files = fs.readdirSync(
+              `${outputLocation}/${unityPackage.config.name}/${unityPackage.config.publishing.targetFolder}/MyProject`);
 
-            expect(fs.existsSync(examplePath)).to.not.be.ok;
+            ['Testing', 'Testing.meta'].forEach((f) => {
+              expect(files).to.not.contain(f);
+            });
           });
         });
       });
@@ -1101,7 +1071,7 @@ describe('CmdInstall', () => {
 
           it('should use the cache if a package is re-installed', async () => {
             stubServiceCacheSet.callThrough();
-            const stubTarExtract = sinon.stub(tar, 'extract');
+            const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive');
 
             const unityPackage = await A.unityPackage()
               .withName(packageData.name)
@@ -1127,10 +1097,8 @@ describe('CmdInstall', () => {
 
             await unityPackage.deleteProject();
 
-            expect(stubTarExtract.calledWith({
-              file: cacheData.archivePath,
-              cwd: `${outputPath}/${packageData.name}`,
-            })).to.be.ok;
+            expect(stubTarExtract.calledWith(cacheData.archivePath, `${outputPath}/${packageData.name}`))
+              .to.be.ok;
           });
         });
 
@@ -1249,6 +1217,26 @@ describe('CmdInstall', () => {
         dependencyNames.forEach((d) => {
           expect(installedPackageFolders).to.contain(d);
         });
+      });
+
+      it('should not print a warning if installing a package from the config again', async () => {
+        const unityPackage = await A.unityPackage()
+          .withName(parentPackage)
+          .build();
+
+        config.dependencies.packages.push({
+          name: unityPackage.config.name,
+          version: `^${unityPackage.config.version.toString()}`,
+        });
+
+        setPackageServiceGetResponse([unityPackage]);
+
+        await cmd.action();
+
+        await unityPackage.deleteProject();
+
+        expect(cmd.logWarning.history).to.not
+          .contain('Version ^1.0.0 not found for package my-package. Installed version 1.0.0 instead');
       });
 
       describe('special symbols', () => {

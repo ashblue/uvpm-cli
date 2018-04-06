@@ -66,3 +66,4 @@ dist/
 .db/
 .db-test/
 .tmp/
+.cache/

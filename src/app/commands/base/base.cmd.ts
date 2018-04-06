@@ -57,7 +57,7 @@ export abstract class CmdBase {
     this.addCliCommnd();
   }
 
-  public action (argA?: string, argB?: string): Promise<void> {
+  public action (argA?: any, argB?: any, argC?: any): Promise<void> {
     return new Promise<void>(async (resolve) => {
       if (this.requireUvpmJson && !this.config.isFile) {
         this.logError.print(
@@ -78,7 +78,7 @@ export abstract class CmdBase {
         return;
       }
 
-      this.onAction(argA, argB)
+      this.onAction(argA, argB, argC)
         .then(() => {
           resolve();
           this.complete();
@@ -93,7 +93,7 @@ export abstract class CmdBase {
     });
   }
 
-  protected abstract onAction (argA?: string, argB?: string): Promise<void>;
+  protected abstract onAction (argA?: any, argB?: any, argC?: any): Promise<void>;
 
   private complete () {
     /* istanbul ignore if: crashes test runner */
