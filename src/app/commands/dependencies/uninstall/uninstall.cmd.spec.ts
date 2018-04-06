@@ -7,11 +7,11 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ModelProfile } from '../../../models/profile/profile.model';
 import { ServiceDatabase } from '../../../services/database/database.service';
 import { ExampleProjectUnity } from '../../../shared/tests/example-project/unity/example-project-unity';
-import * as tar from 'tar';
 import * as fs from 'fs';
 import mkdirp = require('mkdirp');
 import { Command } from 'commander';
 import { CmdInstall } from '../install/install.cmd';
+import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
 describe('CmdUninstall', () => {
   const packageName = 'my-package';
@@ -78,10 +78,7 @@ describe('CmdUninstall', () => {
     });
 
     mkdirp.sync(outputLocation);
-    await tar.extract({
-      file: installedPackage.archive,
-      cwd: outputLocation,
-    });
+    await CmdPublish.extractArchive(installedPackage.archive, outputLocation);
   }
 
   describe('missing data failures', () => {
