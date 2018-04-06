@@ -214,7 +214,7 @@ describe('CmdPublish', () => {
         await cmd.action();
 
         unityPackageData.versions[0].archive =
-          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString();
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString('base64');
 
         const callArgs = stubPackageCreate.args[0][0] as any;
         expect(callArgs.name).to.eq(config.name);
@@ -251,7 +251,7 @@ describe('CmdPublish', () => {
         await cmd.action();
 
         unityPackageData.versions[0].archive =
-          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString();
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString('base64');
 
         const packageName: string = stubPackageVersionsAdd.args[0][0] as any;
         const version: IPackageVersion = stubPackageVersionsAdd.args[0][1] as any;

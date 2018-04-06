@@ -64,10 +64,11 @@ export class CmdPublish extends CmdBase {
 
           const fileDetails = fs.lstatSync(f);
 
-          // If a file
           if (fileDetails.isFile()) {
             fs.unlinkSync(f);
-          } else if (fileDetails.isDirectory()) {
+          }
+
+          if (fileDetails.isDirectory()) {
             rimraf.sync(f);
           }
         });
