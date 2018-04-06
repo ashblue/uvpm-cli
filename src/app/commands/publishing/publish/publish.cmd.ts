@@ -67,10 +67,7 @@ export class CmdPublish extends CmdBase {
           // If a file
           if (fileDetails.isFile()) {
             fs.unlinkSync(f);
-          }
-
-          // If a folder rimraf it
-          if (fileDetails.isDirectory()) {
+          } else if (fileDetails.isDirectory()) {
             rimraf.sync(f);
           }
         });
@@ -96,10 +93,13 @@ export class CmdPublish extends CmdBase {
   public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const stream = fs.createWriteStream(destinationFile);
-      stream.on('close', resolve);
       stream.on('error', reject);
+      stream.on('close', resolve);
 
-      tarFs.pack(sourceFolder).pipe(stream);
+      const packer = tarFs.pack(sourceFolder);
+      packer.on('error', reject);
+
+      packer.pipe(stream);
     });
   }
 
@@ -133,6 +133,7 @@ export class CmdPublish extends CmdBase {
         await CmdPublish.cleanProject(folder, this.config);
       } catch (message) {
         reject(message);
+        return;
       }
 
       resolve();
@@ -242,7 +243,7 @@ export class CmdPublish extends CmdBase {
         return;
       }
 
-      resolve(result.toString());
+      resolve(result.toString('base64'));
     });
   }
 }
