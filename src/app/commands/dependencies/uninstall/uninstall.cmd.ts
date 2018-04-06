@@ -5,7 +5,13 @@ import { ICmdOption } from '../../base/i-cmd-option';
 import { CmdInstall } from '../install/install.cmd';
 import { A } from '../../../shared/tests/builder/a';
 
+interface ICmdUninstallOptions {
+  save?: boolean;
+}
+
 export class CmdUninstall extends CmdBase {
+  private _options: ICmdUninstallOptions = {};
+
   public get name (): string {
     return 'uninstall [package]';
   }
@@ -17,7 +23,7 @@ export class CmdUninstall extends CmdBase {
   protected get options (): ICmdOption[] {
     return [
       {
-        flags: '--save, -s',
+        flags: '-s, --save',
         description: 'Remove the uninstalled package from the uvpm.json file',
         defaultValue: false,
       },
@@ -41,7 +47,11 @@ export class CmdUninstall extends CmdBase {
     return '.';
   }
 
-  protected onAction (packageName?: string): Promise<void> {
+  protected onAction (packageName?: string, options?: ICmdUninstallOptions): Promise<void> {
+    if (options) {
+      this._options = options;
+    }
+
     return new Promise<void>(async (resolve, reject) => {
       if (packageName) {
         const packageLocation = `${this.fileRoot}/${this.config.dependencies.outputFolder}/${packageName}`;
@@ -67,7 +77,7 @@ export class CmdUninstall extends CmdBase {
   private async removePackage (packageLocation: string, packageName: string) {
     rimraf.sync(packageLocation);
 
-    if (this.program.save) {
+    if (this._options.save) {
       this.config.dependencies.packages = this.config.dependencies.packages
         .filter((p) => p.name !== packageName);
 
