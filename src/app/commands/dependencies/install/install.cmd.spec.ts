@@ -12,13 +12,13 @@ import rimraf = require('rimraf');
 import * as fs from 'fs';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import * as glob from 'glob';
-import * as tar from 'tar';
 import { A } from '../../../shared/tests/builder/a';
 import { ExampleProjectUnity } from '../../../shared/tests/example-project/unity/example-project-unity';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
 import * as tmp from 'tmp';
 import { ServiceCache } from '../../../services/cache/cache.service';
+import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
 // @TODO Break this file into two files. One for each install command variation
 describe('CmdInstall', () => {
@@ -329,7 +329,7 @@ describe('CmdInstall', () => {
         });
 
         it('should install the latest version of the package', async () => {
-          const stubTarExtract = sinon.stub(tar, 'extract');
+          const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive');
           stubTarExtract.returns(new Promise((resolve) => resolve()));
 
           const archivePackage = await A.unityPackage()
@@ -348,7 +348,31 @@ describe('CmdInstall', () => {
 
           stubTarExtract.restore();
 
-          expect(stubTarExtract.args[0][0].file).to.eq(archivePackageNewer.archive);
+          expect(stubTarExtract.args[0][0]).to.eq(archivePackageNewer.archive);
+        });
+
+        it('should install the latest version of the package over an older version', async () => {
+          const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive').callThrough();
+
+          const archivePackage = await A.unityPackage()
+            .withName(packageData.name)
+            .withVersion('1.0.0')
+            .build();
+
+          const archivePackageNewer = await A.unityPackage()
+            .withName(packageData.name)
+            .withVersion('1.2.0')
+            .build();
+
+          setPackageServiceGetResponse([archivePackage]);
+          await cmd.action(packageData.name);
+
+          setPackageServiceGetResponse([archivePackage, archivePackageNewer]);
+          await cmd.action(packageData.name);
+
+          stubTarExtract.restore();
+
+          expect(stubTarExtract.args[1][0]).to.eq(archivePackageNewer.archive);
         });
 
         describe('http archive downloads', () => {
@@ -1109,7 +1133,7 @@ describe('CmdInstall', () => {
 
           it('should use the cache if a package is re-installed', async () => {
             stubServiceCacheSet.callThrough();
-            const stubTarExtract = sinon.stub(tar, 'extract');
+            const stubTarExtract = sinon.stub(CmdPublish, 'extractArchive');
 
             const unityPackage = await A.unityPackage()
               .withName(packageData.name)
@@ -1135,10 +1159,8 @@ describe('CmdInstall', () => {
 
             await unityPackage.deleteProject();
 
-            expect(stubTarExtract.calledWith({
-              file: cacheData.archivePath,
-              cwd: `${outputPath}/${packageData.name}`,
-            })).to.be.ok;
+            expect(stubTarExtract.calledWith(cacheData.archivePath, `${outputPath}/${packageData.name}`))
+              .to.be.ok;
           });
         });
 

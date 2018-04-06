@@ -2,16 +2,18 @@ import { CmdBase } from '../../base/base.cmd';
 import { ncp } from 'ncp';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
-import * as tar from 'tar';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { serviceTmp } from '../../../services/tmp/tmp.service';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import mkdirp = require('mkdirp');
+import * as tarFs from 'tar-fs';
 
 /**
  * @TODO Move file helper methods onto a helper class
  */
 export class CmdPublish extends CmdBase {
+  public static ARCHIVE_NAME = 'archive.tar';
+
   get name (): string {
     return 'publish';
   }
@@ -81,17 +83,23 @@ export class CmdPublish extends CmdBase {
     });
   }
 
-  public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
-    return new Promise<void>(async (resolve) => {
-      const stream = fs.createWriteStream(destinationFile);
-      stream.on('close', () => resolve());
+  public static extractArchive (archiveFile: string, dumpFolder: string) {
+    return new Promise((resolve, reject) => {
+      const extractor = tarFs.extract(dumpFolder);
+      extractor.on('finish', resolve);
+      extractor.on('error', reject);
 
-      tar.create({
-        // @NOTE Files cannot be gziped as it corrupts them at the server level
-        gzip: false,
-        cwd: sourceFolder,
-      }, ['.'])
-        .pipe(stream);
+      fs.createReadStream(archiveFile).pipe(extractor);
+    });
+  }
+
+  public static createArchive (sourceFolder: string, destinationFile: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      const stream = fs.createWriteStream(destinationFile);
+      stream.on('close', resolve);
+      stream.on('error', reject);
+
+      tarFs.pack(sourceFolder).pipe(stream);
     });
   }
 
@@ -211,7 +219,7 @@ export class CmdPublish extends CmdBase {
     return new Promise<string>(async (resolve, reject) => {
       const tmpCopyPath = `${serviceTmp.tmpFolder}/${this.config.name}`;
       const tmpCopyTargetPath = `${tmpCopyPath}/${this.config.publishing.targetFolder}`;
-      const tmpArchiveFilePath = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const tmpArchiveFilePath = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
 
       // istanbul ignore next
       try {

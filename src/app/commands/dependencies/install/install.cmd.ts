@@ -1,7 +1,6 @@
 import { CmdBase } from '../../base/base.cmd';
 import mkdirp = require('mkdirp');
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
-import * as tar from 'tar';
 import { ModelVersion } from '../../../models/version/version.model';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import * as fs from 'fs';
@@ -9,6 +8,7 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import rimraf = require('rimraf');
 import { ICmdOption } from '../../base/i-cmd-option';
 import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-config-package';
+import { CmdPublish } from '../../publishing/publish/publish.cmd';
 
 export class CmdInstall extends CmdBase {
   get name (): string {
@@ -225,10 +225,7 @@ export class CmdInstall extends CmdBase {
       mkdirp.sync(outputFolder);
 
       // Unpack the archive into the new directory
-      await tar.extract({
-        file: archiveTmp,
-        cwd: outputFolder,
-      });
+      await CmdPublish.extractArchive(archiveTmp, outputFolder);
 
       await this.cleanPackageFiles(outputFolder, packageDetails);
 

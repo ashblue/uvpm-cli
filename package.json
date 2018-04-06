@@ -61,6 +61,7 @@
     "@types/pouchdb-node": "^6.1.2",
     "@types/rimraf": "^2.0.2",
     "@types/tar": "^4.0.0",
+    "@types/tar-fs": "^1.16.0",
     "@types/tmp": "0.0.33",
     "archiver": "^2.1.1",
     "axios": "^0.17.1",
@@ -77,6 +78,7 @@
     "pouchdb-node": "^6.4.3",
     "rimraf": "^2.6.2",
     "tar": "^4.4.0",
+    "tar-fs": "^1.16.0",
     "tmp": "0.0.33"
   },
   "devDependencies": {

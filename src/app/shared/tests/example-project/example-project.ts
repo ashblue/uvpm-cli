@@ -56,12 +56,11 @@ export class ExampleProject {
       }
 
       const folder = tmp.dirSync();
-      this._root = folder.name;
 
       await this.createProject();
       await CmdPublish.cleanProject(folder.name, this.config);
-      const archiveFile = `${folder.name}/${this.config.version}.tar.gz`;
-      await CmdPublish.createArchive(folder.name, archiveFile);
+      const archiveFile = `${folder.name}/${CmdPublish.ARCHIVE_NAME}`;
+      await CmdPublish.createArchive(this.root, archiveFile);
       this._archive = archiveFile;
 
       resolve();

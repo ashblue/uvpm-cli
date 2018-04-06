@@ -11,7 +11,6 @@ import { serviceTmp } from '../../../services/tmp/tmp.service';
 import { unityExampleProjectFiles } from '../../../shared/tests/example-project/unity/unity-example-project-files';
 import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import * as glob from 'glob';
-import * as tar from 'tar';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
@@ -151,17 +150,14 @@ describe('CmdPublish', () => {
 
     it('should dump the correct files in the root when unpacked', async () => {
       const expectedFiles = ['Assets', 'uvpm.json'];
+      const archiveDump = tmp.dirSync();
 
       await cmd.action();
 
-      const archiveDump = tmp.dirSync();
-      await tar.extract({
-        file: `${serviceTmp.tmpFolder}/archive.tar.gz`,
-        cwd: archiveDump.name,
-      });
+      const archive = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
+      await CmdPublish.extractArchive(archive, archiveDump.name);
 
       const unpackedRoot = fs.readdirSync(archiveDump.name);
-
       rimraf.sync(archiveDump.name);
 
       expect(unpackedRoot).to.deep.eq(expectedFiles);
@@ -217,7 +213,8 @@ describe('CmdPublish', () => {
       it('should receive the package data with the archive', async () => {
         await cmd.action();
 
-        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
+        unityPackageData.versions[0].archive =
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString();
 
         const callArgs = stubPackageCreate.args[0][0] as any;
         expect(callArgs.name).to.eq(config.name);
@@ -253,7 +250,8 @@ describe('CmdPublish', () => {
       it('should receive the package data with the archive', async () => {
         await cmd.action();
 
-        unityPackageData.versions[0].archive = fs.readFileSync(`${serviceTmp.tmpFolder}/archive.tar.gz`).toString();
+        unityPackageData.versions[0].archive =
+          fs.readFileSync(`${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`).toString();
 
         const packageName: string = stubPackageVersionsAdd.args[0][0] as any;
         const version: IPackageVersion = stubPackageVersionsAdd.args[0][1] as any;
@@ -398,7 +396,7 @@ describe('CmdPublish', () => {
   describe('createArchive', () => {
     it('should turn the passed folder into an archive at the destination', async () => {
       const archiveSource = `${destination}`;
-      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
 
       await cmd.copyProject(source, destination);
       await cmd.cleanFolder(destination);
@@ -409,7 +407,7 @@ describe('CmdPublish', () => {
 
     it('should have the same files and folders when unarchived', async () => {
       const archiveSource = `${destination}`;
-      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
       const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
 
       await cmd.copyProject(source, destination);
@@ -422,10 +420,7 @@ describe('CmdPublish', () => {
 
       // Unzip the archive
       fs.mkdirSync(unarchiveDestination);
-      await tar.extract({
-        file: archiveDestination,
-        cwd: unarchiveDestination,
-      });
+      await CmdPublish.extractArchive(archiveDestination, unarchiveDestination);
       const extractedFiles = await getFiles(unarchiveDestination);
       expect(extractedFiles).to.be.ok;
 
@@ -442,7 +437,7 @@ describe('CmdPublish', () => {
 
     it('should have the same files and folders when convert to string, then file, then turned back', async () => {
       const archiveSource = `${destination}`;
-      const archiveDestination = `${serviceTmp.tmpFolder}/archive.tar.gz`;
+      const archiveDestination = `${serviceTmp.tmpFolder}/${CmdPublish.ARCHIVE_NAME}`;
       const unarchiveDestination = `${serviceTmp.tmpFolder}/archive`;
 
       await cmd.copyProject(source, destination);
@@ -458,10 +453,7 @@ describe('CmdPublish', () => {
       fs.writeFileSync(tmpArchive, archiveString);
 
       fs.mkdirSync(unarchiveDestination);
-      await tar.extract({
-        file: tmpArchive,
-        cwd: unarchiveDestination,
-      });
+      await CmdPublish.extractArchive(tmpArchive, unarchiveDestination);
       const extractedFiles = await getFiles(unarchiveDestination);
 
       copiedFiles.forEach((f) => {
