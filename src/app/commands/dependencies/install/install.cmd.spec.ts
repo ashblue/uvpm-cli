@@ -245,7 +245,7 @@ describe('CmdInstall', () => {
             .build();
 
           const archiveFiles = await new Promise<string[]>((resolve, reject) => {
-            const filePathGlob = `${archivePackage.root}/**/!(*.tar.gz)`;
+            const filePathGlob = `${archivePackage.root}/**/!(*.tar)`;
             glob(filePathGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);
@@ -261,7 +261,7 @@ describe('CmdInstall', () => {
           await cmd.action(packageData.name);
 
           const installedFiles = await new Promise<string[]>((resolve, reject) => {
-            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar.gz)`;
+            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar)`;
             glob(getFileGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);
@@ -285,7 +285,7 @@ describe('CmdInstall', () => {
             .withName(packageData.name)
             .build();
           const archiveFiles = await new Promise<string[]>((resolve, reject) => {
-            const filePathGlob = `${archivePackage.root}/**/!(*.tar.gz)`;
+            const filePathGlob = `${archivePackage.root}/**/!(*.tar)`;
             glob(filePathGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);
@@ -305,7 +305,7 @@ describe('CmdInstall', () => {
           await cmd.action(packageData.name);
 
           const installedFiles = await new Promise<string[]>((resolve, reject) => {
-            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar.gz)`;
+            const getFileGlob = `${outputLocation}/${archivePackage.config.name}/**/!(*.tar)`;
             glob(getFileGlob, { dot: true }, (err, result) => {
               if (err) {
                 reject(err);

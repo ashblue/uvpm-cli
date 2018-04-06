@@ -16,7 +16,7 @@ export class ServiceCache {
 
   public set (name: string, version: string, filePath: string): Promise<ICachePackage> {
     return new Promise<ICachePackage>((resolve, reject) => {
-      const fileName = `${name}-${version}.tar.gz`;
+      const fileName = `${name}-${version}.tar`;
       const folder = `${ServiceCache.cachePath}/${name}/${version}`;
       const fileCopyPath = `${folder}/${fileName}`;
 

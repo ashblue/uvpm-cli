@@ -16,7 +16,7 @@ describe('ServiceCache', () => {
   const packageVersion = '1.0.0';
 
   const fileFolder = `${ServiceCache.cachePath}/${packageName}`;
-  const filePath = `${fileFolder}/${packageVersion}/${packageName}-${packageVersion}.tar.gz`;
+  const filePath = `${fileFolder}/${packageVersion}/${packageName}-${packageVersion}.tar`;
   let file: SynchrounousResult;
 
   let serviceCache: ServiceCache;
@@ -81,7 +81,7 @@ describe('ServiceCache', () => {
 
       it('should append new versions to the package if set is called again', async () => {
         const packageVersionNew = '2.0.0';
-        const filePathNew = `${fileFolder}/${packageVersionNew}/${packageName}-${packageVersionNew}.tar.gz`;
+        const filePathNew = `${fileFolder}/${packageVersionNew}/${packageName}-${packageVersionNew}.tar`;
         const fileNew = tmp.fileSync();
 
         const expectedResult: ICachePackage = {
