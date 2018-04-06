@@ -29,6 +29,7 @@ export class ServiceCache {
 
       const writeStream = fs.createWriteStream(fileCopyPath);
 
+      writeStream.on('error', reject);
       writeStream.on('close', async () => {
         try {
           const existingPackage = await this.getPackage(name);

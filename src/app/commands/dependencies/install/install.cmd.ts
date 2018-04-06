@@ -202,7 +202,11 @@ export class CmdInstall extends CmdBase {
       const targetVersion = this.findTargetVersion(packageVersion, packageDetails, packageData);
 
       let archiveTmp: string|undefined;
+      let isCacheArchive = false;
       archiveTmp = await this.getArchiveFromCache(packageName, targetVersion.name);
+      if (archiveTmp) {
+        isCacheArchive = true;
+      }
 
       if (!archiveTmp) {
         try {
@@ -247,10 +251,12 @@ export class CmdInstall extends CmdBase {
 
       await this.cleanPackageFiles(outputFolder, packageDetails);
 
-      try {
-        await this.serviceCache.set(packageName, targetVersion.name, archiveTmp);
-      } catch (err) {
-        this.logError.print(`Cache Error: ${err}`);
+      if (!isCacheArchive) {
+        try {
+          await this.serviceCache.set(packageName, targetVersion.name, archiveTmp);
+        } catch (err) {
+          this.logError.print(`Cache Error: ${err}`);
+        }
       }
 
       resolve(targetVersion);
