@@ -19,6 +19,7 @@ import { IUvpmPackage } from '../../../shared/interfaces/uvpm/config/i-uvpm-conf
 import * as tmp from 'tmp';
 import { ServiceCache } from '../../../services/cache/cache.service';
 import { CmdPublish } from '../../publishing/publish/publish.cmd';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 // @TODO Break this file into two files. One for each install command variation
 describe('CmdInstall', () => {
@@ -47,8 +48,9 @@ describe('CmdInstall', () => {
     config.name = 'my-project';
     stubConfigSave = sinon.stub(config, 'save');
 
-    servicePackages = new ServicePackages(profile);
-    servicePackageVersions = new ServicePackageVersions(profile);
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
+    servicePackageVersions = new ServicePackageVersions(profile, serviceAxis);
     serviceCache = new ServiceCache(db);
 
     program = new Command();

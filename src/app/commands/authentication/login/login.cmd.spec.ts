@@ -11,6 +11,7 @@ import { ModelUvpmConfig } from '../../../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../../../services/package-versions/package-versions.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { A } from '../../../shared/tests/builder/a';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 const expect = chai.expect;
 
@@ -28,8 +29,10 @@ describe('CmdLogin', () => {
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
     stubInquirer = new StubInquirer();
-    servicePackages = new ServicePackages(profile);
-    servicePackageVersions = new ServicePackageVersions(profile);
+
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
+    servicePackageVersions = new ServicePackageVersions(profile, serviceAxis);
 
     cmd = A.command()
       .withServiceDatabase(db)

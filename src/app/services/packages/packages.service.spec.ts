@@ -5,30 +5,31 @@ import { ModelProfile } from '../../models/profile/profile.model';
 import { ServiceDatabase } from '../database/database.service';
 import nock = require('nock');
 import { IPackageSearchResult } from '../../shared/interfaces/packages/i-package-search-result';
+import { ServiceAxios } from '../axios/axios.service';
 
 describe('ServicePackage', () => {
-  it('should initialize', () => {
-    const packages = new ServicePackages(new ModelProfile(new ServiceDatabase()));
+  const server = 'http://uvpm.com';
+  const packageName = 'my-package';
 
+  let packages: ServicePackages;
+  let modelProfile: ModelProfile;
+  let serviceDatabase: ServiceDatabase;
+  let serviceAxios: ServiceAxios;
+
+  beforeEach(() => {
+    nock.cleanAll();
+    serviceDatabase = new ServiceDatabase();
+    modelProfile = new ModelProfile(serviceDatabase);
+    serviceAxios = new ServiceAxios(modelProfile);
+
+    packages = new ServicePackages(modelProfile, serviceAxios);
+  });
+
+  it('should initialize', () => {
     expect(packages).to.be.ok;
   });
 
   describe('when initialized', () => {
-    const server = 'http://uvpm.com';
-    const packageName = 'my-package';
-
-    let packages: ServicePackages;
-    let modelProfile: ModelProfile;
-    let serviceDatabase: ServiceDatabase;
-
-    beforeEach(() => {
-      nock.cleanAll();
-      serviceDatabase = new ServiceDatabase();
-      modelProfile = new ModelProfile(serviceDatabase);
-
-      packages = new ServicePackages(modelProfile);
-    });
-
     describe('create', () => {
       const packageData: IPackage = {
         name: 'my-package',

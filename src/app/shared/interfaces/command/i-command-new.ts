@@ -7,6 +7,7 @@ import { Command } from 'commander';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { CmdBase } from '../../../commands/base/base.cmd';
 import { ServiceCache } from '../../../services/cache/cache.service';
+import { ServiceAuthentication } from '../../../services/authentication/authentication.service';
 
 export interface ICommandNew {
   new(
@@ -18,5 +19,6 @@ export interface ICommandNew {
     packages: ServicePackages,
     versions: ServicePackageVersions,
     cache: ServiceCache,
+    authentication: ServiceAuthentication,
   ): CmdBase;
 }

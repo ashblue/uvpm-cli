@@ -19,6 +19,7 @@ import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import { IPackageVersion } from '../../../shared/interfaces/packages/versions/i-package-version';
 import { A } from '../../../shared/tests/builder/a';
 import * as mkdirp from 'mkdirp';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 async function getFiles (destination: string) {
   return await new Promise<string[]>((resolve, reject) => {
@@ -65,8 +66,9 @@ describe('CmdPublish', () => {
     config = unityProject.config;
     config.name = 'my-project';
 
-    servicePackages = new ServicePackages(profile);
-    servicePackageVersions = new ServicePackageVersions(profile);
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
+    servicePackageVersions = new ServicePackageVersions(profile, serviceAxis);
 
     stubIsFile = sinon.stub(config, 'isFile')
       .get(() => true);

@@ -8,6 +8,7 @@ import { IPackageSearchResult } from '../../../shared/interfaces/packages/i-pack
 import { CmdView } from './view.cmd';
 import { IPackage } from '../../../shared/interfaces/packages/i-package';
 import chalk from 'chalk';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 describe('CmdView', () => {
   let cmd: CmdView;
@@ -18,7 +19,9 @@ describe('CmdView', () => {
   beforeEach(() => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    servicePackages = new ServicePackages(profile);
+
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
 
     cmd = A.command()
       .withServiceDatabase(db)
