@@ -20,9 +20,9 @@
     "precommit": "npm run build",
     "prepush": "npm run test:all",
     "publish:send-to-npm": "git push --no-verify && npm publish --no-verify",
-    "publish:minor": "git pull && npm version minor && npm run publish:send-to-npm",
-    "publish:major": "git pull && npm version major && npm run publish:send-to-npm",
-    "publish:patch": "git pull && npm version patch && npm run publish:send-to-npm"
+    "publish:minor": "git pull && npm version minor --no-git-tag-version && npm run publish:send-to-npm",
+    "publish:major": "git pull && npm version major --no-git-tag-version && npm run publish:send-to-npm",
+    "publish:patch": "git pull && npm version patch --no-git-tag-version && npm run publish:send-to-npm"
   },
   "bin": {
     "uvpm": "./bin/uvpm"
