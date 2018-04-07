@@ -8,6 +8,7 @@ import * as tmp from 'tmp';
 import * as sinon from 'sinon';
 import { SynchrounousResult } from 'tmp';
 import { SinonStub } from 'sinon';
+import { ServiceAxios } from '../axios/axios.service';
 
 describe('ServicePackageVersions', () => {
   const server = 'http://uvpm.com';
@@ -23,7 +24,9 @@ describe('ServicePackageVersions', () => {
 
     serviceDatabase = new ServiceDatabase();
     modelProfile = new ModelProfile(serviceDatabase);
-    service = new ServicePackageVersions(modelProfile);
+
+    const serviceAxios = new ServiceAxios(modelProfile);
+    service = new ServicePackageVersions(modelProfile, serviceAxios);
 
     versionExample = {
       name: '1.0.0',

@@ -7,6 +7,8 @@ import { ServicePackageVersions } from '../../../services/package-versions/packa
 import { Command } from 'commander';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import { ServiceCache } from '../../../services/cache/cache.service';
+import { ServiceAxios } from '../../../services/axios/axios.service';
+import { ServiceAuthentication } from '../../../services/authentication/authentication.service';
 
 export class CommandBuilder {
   private _db: ServiceDatabase;
@@ -17,6 +19,17 @@ export class CommandBuilder {
   private _packages: ServicePackages;
   private _versions: ServicePackageVersions;
   private _cache: ServiceCache;
+  private _axios: ServiceAxios;
+  private _authentication: ServiceAuthentication;
+
+  // istanbul ignore next
+  private get authentication (): ServiceAuthentication {
+    if (!this._authentication) {
+      this._authentication = new ServiceAuthentication(this.profile, this.axios);
+    }
+
+    return this._authentication;
+  }
 
   // istanbul ignore next
   private get db (): ServiceDatabase {
@@ -25,6 +38,15 @@ export class CommandBuilder {
     }
 
     return this._db;
+  }
+
+  // istanbul ignore next
+  private get axios (): ServiceAxios {
+    if (!this._axios) {
+      this._axios = new ServiceAxios(this.profile);
+    }
+
+    return this._axios;
   }
 
   // istanbul ignore next
@@ -64,7 +86,7 @@ export class CommandBuilder {
   // istanbul ignore next
   private get packages (): ServicePackages {
     if (!this._packages) {
-      this._packages = new ServicePackages(this.profile);
+      this._packages = new ServicePackages(this.profile, this.axios);
     }
 
     return this._packages;
@@ -73,7 +95,7 @@ export class CommandBuilder {
   // istanbul ignore next
   private get versions (): ServicePackageVersions {
     if (!this._versions) {
-      this._versions = new ServicePackageVersions(this.profile);
+      this._versions = new ServicePackageVersions(this.profile, this.axios);
     }
 
     return this._versions;
@@ -97,6 +119,7 @@ export class CommandBuilder {
       this.packages,
       this.versions,
       this.cache,
+      this.authentication,
     );
   }
 
@@ -137,6 +160,17 @@ export class CommandBuilder {
 
   public withServiceCache (cache: ServiceCache) {
     this._cache = cache;
+    return this;
+  }
+
+  // istanbul ignore next
+  public withServiceAxios (axios: ServiceAxios) {
+    this._axios = axios;
+    return this;
+  }
+
+  public withServiceAuthentication (authentication: ServiceAuthentication) {
+    this._authentication = authentication;
     return this;
   }
 }

@@ -10,6 +10,7 @@ import { ServicePackageVersions } from '../../services/package-versions/package-
 import { TerminalLog } from './terminal-log/terminal-log';
 import { LogType } from './terminal-log/log-type';
 import { ServiceCache } from '../../services/cache/cache.service';
+import { ServiceAuthentication } from '../../services/authentication/authentication.service';
 
 export abstract class CmdBase {
   public abstract get name (): string;
@@ -53,6 +54,7 @@ export abstract class CmdBase {
     protected servicePackages: ServicePackages,
     protected servicePackageVersions: ServicePackageVersions,
     protected serviceCache: ServiceCache,
+    protected serviceAuthentication: ServiceAuthentication,
   ) {
     this.addCliCommnd();
   }

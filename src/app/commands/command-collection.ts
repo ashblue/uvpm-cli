@@ -24,6 +24,8 @@ import { CmdUninstall } from './dependencies/uninstall/uninstall.cmd';
 import { CmdCacheClear } from './dependencies/cache-clear/cache-clear.cmd';
 import { CmdSearch } from './dependencies/search/search.cmd';
 import { CmdView } from './dependencies/view/view.cmd';
+import { ServiceAuthentication } from '../services/authentication/authentication.service';
+import { CmdRegister } from './authentication/register/register.cmd';
 
 export class CommandCollection {
   public commandInstances: CmdBase[] = [];
@@ -42,6 +44,7 @@ export class CommandCollection {
     CmdCacheClear,
     CmdSearch,
     CmdView,
+    CmdRegister,
   ];
 
   constructor (
@@ -53,12 +56,13 @@ export class CommandCollection {
     private servicePackages: ServicePackages,
     private servicePackageVersions: ServicePackageVersions,
     private serviceCache: ServiceCache,
+    private serviceAuthentication: ServiceAuthentication,
   ) {
     this.setCliDetails();
 
     this.commands.forEach((c) => {
       this.commandInstances.push(new c(this.db, this.profile, this.config, program, this.inq,
-        this.servicePackages, this.servicePackageVersions, this.serviceCache));
+        this.servicePackages, this.servicePackageVersions, this.serviceCache, this.serviceAuthentication));
     });
   }
 

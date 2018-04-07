@@ -11,6 +11,7 @@ import * as sinon from 'sinon';
 import { Answers, Question } from 'inquirer';
 import { IUnpublishAnswers } from './i-unpublish-answers';
 import { A } from '../../../shared/tests/builder/a';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 describe('CmdUnpublish', () => {
   let db: ServiceDatabase;
@@ -54,8 +55,9 @@ describe('CmdUnpublish', () => {
     config = new ModelUvpmConfig();
     config.name = 'my-project';
 
-    servicePackages = new ServicePackages(profile);
-    servicePackageVersions = new ServicePackageVersions(profile);
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
+    servicePackageVersions = new ServicePackageVersions(profile, serviceAxis);
 
     stubIsFile = sinon.stub(config, 'isFile')
       .get(() => true);

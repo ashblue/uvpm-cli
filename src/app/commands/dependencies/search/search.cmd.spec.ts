@@ -8,6 +8,7 @@ import * as sinon from 'sinon';
 import { IPackageSearchResult } from '../../../shared/interfaces/packages/i-package-search-result';
 import * as CliTable2 from 'cli-table2';
 import { HorizontalTable } from 'cli-table2';
+import { ServiceAxios } from '../../../services/axios/axios.service';
 
 describe('CmdSearch', () => {
   let cmd: CmdSearch;
@@ -18,7 +19,9 @@ describe('CmdSearch', () => {
   beforeEach(() => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
-    servicePackages = new ServicePackages(profile);
+
+    const serviceAxis = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxis);
 
     cmd = A.command()
       .withServiceDatabase(db)

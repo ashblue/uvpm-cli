@@ -8,6 +8,8 @@ import { ModelUvpmConfig } from '../models/uvpm/uvpm-config.model';
 import { ServicePackageVersions } from '../services/package-versions/package-versions.service';
 import { ServicePackages } from '../services/packages/packages.service';
 import { ServiceCache } from '../services/cache/cache.service';
+import { ServiceAxios } from '../services/axios/axios.service';
+import { ServiceAuthentication } from '../services/authentication/authentication.service';
 
 const expect = chai.expect;
 
@@ -24,11 +26,13 @@ describe('CommandCollection', () => {
     db = new ServiceDatabase();
     profile = new ModelProfile(db);
     config = new ModelUvpmConfig();
-    servicePackages = new ServicePackages(profile);
-    servicePackageVersions = new ServicePackageVersions(profile);
+
+    const serviceAxios = new ServiceAxios(profile);
+    servicePackages = new ServicePackages(profile, serviceAxios);
+    servicePackageVersions = new ServicePackageVersions(profile, serviceAxios);
 
     col = new CommandCollection(db, profile, config, new commander.Command(), inquirer,
-      servicePackages, servicePackageVersions, new ServiceCache(db));
+      servicePackages, servicePackageVersions, new ServiceCache(db), new ServiceAuthentication(profile, serviceAxios));
   });
 
   it('should initialize', () => {
@@ -125,6 +129,12 @@ describe('CommandCollection', () => {
 
       it('should inject a server command', () => {
         const match = findCommand('server');
+
+        expect(match).to.be.ok;
+      });
+
+      it('should inject a register command', () => {
+        const match = findCommand('register');
 
         expect(match).to.be.ok;
       });
