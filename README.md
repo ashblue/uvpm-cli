@@ -12,7 +12,7 @@ A CLI for interacting with an Ultra-Violet Package Manger server.
 
 Simply run the following command to install the CLI globally.
 
-```bash`**``**`
+```bash
 npm install -g uvpm-cli
 ```
 
