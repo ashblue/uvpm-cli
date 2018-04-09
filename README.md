@@ -30,11 +30,14 @@ uvpm login
 # Create a uvpm.json file for configuration
 uvpm init
 
-# Install a particular package as a dependency
-uvpm install MY_PACKAGE
+# Install a particular package as a dependency and write it to the config
+uvpm install MY_PACKAGE --save
 
 # Publish the package for other packages to use
 uvpm publish
+
+# Search for the recently published package with fuzzy searching
+search MY_PACKAGE
 ```
 
 ## Commands
