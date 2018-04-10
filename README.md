@@ -18,7 +18,7 @@ npm install -g uvpm-cli
 
 ### Example Workflow
 
-Navigate to the repo you wish to use UVPM with. Then run the following commands to get started from you CLI.
+Navigate to the repo you wish to use UVPM with. Then run the following commands to get started from your CLI.
 
 ```bash
 # Set the server where you've setup a UVPM installation
