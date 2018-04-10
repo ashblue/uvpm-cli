@@ -1,11 +1,10 @@
 {
   "name": "uvpm-cli",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "description": "A CLI for the Ultra Violet Package Manger server",
   "main": "dist/index.js",
   "scripts": {
     "start": "npm run watch",
-    "postinstall": "npm run build",
     "watch": "npm run lint && tsc -w",
     "build": "npm run lint && tsc",
     "lint": "tslint -c tslint.json \"src/**/*.ts\"",
@@ -19,11 +18,15 @@
     "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
     "precommit": "npm run build",
     "prepush": "npm run test:all",
-    "publish:send-to-npm": "git add . && git commit -m \"Increment NPM version\" --no-verify && git push --no-verify && npm publish --no-verify",
-    "publish:minor": "git pull && npm version minor --no-git-tag-version && npm run publish:send-to-npm",
-    "publish:major": "git pull && npm version major --no-git-tag-version && npm run publish:send-to-npm",
-    "publish:patch": "git pull && npm version patch --no-git-tag-version && npm run publish:send-to-npm"
+    "prepublish": "npm run build",
+    "publish:minor": "npm version minor && npm publish",
+    "publish:major": "npm version major && npm publish",
+    "publish:patch": "npm version patch && npm publish"
   },
+  "files": [
+    "dist",
+    "bin"
+  ],
   "bin": {
     "uvpm": "./bin/uvpm"
   },
