@@ -37,7 +37,7 @@ uvpm install MY_PACKAGE --save
 uvpm publish
 
 # Search for the recently published package with fuzzy searching
-search MY_PACKAGE
+uvpm search MY_PACKAGE
 ```
 
 ## Commands
