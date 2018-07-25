@@ -1,6 +1,6 @@
 import { CmdBase } from '../../base/base.cmd';
-import { HorizontalTable } from 'cli-table2';
-import * as CliTable2 from 'cli-table2';
+import { HorizontalTable } from 'cli-table3';
+import * as CliTable3 from 'cli-table3';
 import { IPackageSearchResult } from '../../../shared/interfaces/packages/i-package-search-result';
 
 export class CmdSearch extends CmdBase {
@@ -45,7 +45,7 @@ export class CmdSearch extends CmdBase {
   }
 
   private createTable (result: IPackageSearchResult[]) {
-    const table = new CliTable2({
+    const table = new CliTable3({
       head: ['name', 'description', 'author', 'date', 'version'],
     }) as HorizontalTable;
 

@@ -70,7 +70,7 @@
     "@types/tmp": "0.0.33",
     "axios": "^0.17.1",
     "chalk": "^2.3.0",
-    "cli-table2": "^0.2.0",
+    "cli-table3": "^0.5.0",
     "commander": "^2.13.0",
     "get-installed-path": "^4.0.8",
     "glob": "^7.1.2",

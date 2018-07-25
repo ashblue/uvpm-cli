@@ -6,8 +6,8 @@ import { ServiceDatabase } from '../../../services/database/database.service';
 import { ServicePackages } from '../../../services/packages/packages.service';
 import * as sinon from 'sinon';
 import { IPackageSearchResult } from '../../../shared/interfaces/packages/i-package-search-result';
-import * as CliTable2 from 'cli-table2';
-import { HorizontalTable } from 'cli-table2';
+import * as CliTable3 from 'cli-table3';
+import { HorizontalTable } from 'cli-table3';
 import { ServiceAxios } from '../../../services/axios/axios.service';
 
 describe('CmdSearch', () => {
@@ -86,7 +86,7 @@ describe('CmdSearch', () => {
             return new Promise<IPackageSearchResult[]>((resolve) => resolve([result]));
           });
 
-        const table = new CliTable2({
+        const table = new CliTable3({
           head: ['name', 'description', 'author', 'date', 'version'],
         }) as HorizontalTable;
 
